@@ -18,12 +18,12 @@ interface Props {
 }
 
 function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  const absValue = Math.abs(amount);
+  const formatted = new Intl.NumberFormat('en-IN', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  }).format(amount);
+  }).format(absValue);
+  return `${amount < 0 ? '-' : ''}Rs.${formatted}`;
 }
 
 export function NetWorthCard({ accounts, netWorth, onAddAccount, onDeleteAccount, readOnly }: Props) {

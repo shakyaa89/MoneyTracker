@@ -12,10 +12,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Download, Search, Wallet } from 'lucide-react';
+import { Plus, Download, Search, Wallet, Loader2, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
-const Index = () => {
+interface Props {
+  onLock?: () => void;
+}
+
+const Index = ({ onLock }: Props) => {
   const store = useFinanceStore();
 
   const now = new Date();
@@ -56,6 +60,17 @@ const Index = () => {
     setTxDialogOpen(true);
   };
 
+  if (store.isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm">Loading your data...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b">
@@ -64,18 +79,29 @@ const Index = () => {
             <Wallet className="w-5 h-5 text-primary" />
             <h1 className="text-lg font-bold">MoneyTrack</h1>
           </div>
-          <Button size="sm" onClick={() => { setEditTx(null); setTxDialogOpen(true); }} className="gap-1.5">
-            <Plus className="w-4 h-4" /> Add
-          </Button>
+          <div className="flex items-center gap-2">
+            {onLock && (
+              <Button type="button" size="sm" variant="outline" onClick={onLock} className="gap-1.5">
+                <Lock className="w-4 h-4" />
+                <span className="hidden sm:inline">Lock</span>
+              </Button>
+            )}
+            <Button size="sm" onClick={() => { setEditTx(null); setTxDialogOpen(true); }} className="gap-1.5">
+              <Plus className="w-4 h-4" /> Add
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="container max-w-2xl py-4 space-y-6 pb-20">
-        {store.isLoading && (
-          <div className="text-sm text-muted-foreground">Loading data...</div>
+        {store.isSaving && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Syncing data...</span>
+          </div>
         )}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full h-auto grid-cols-2 sm:grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="accounts">Accounts</TabsTrigger>
@@ -104,19 +130,19 @@ const Index = () => {
           <TabsContent value="transactions" className="space-y-4">
             <MonthNavigator year={year} month={month} onChange={(y, m) => { setYear(y); setMonth(m); }} />
             <MonthlySummary transactions={monthTransactions} />
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
                 <Input placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-8 h-9" />
               </div>
               <Select value={filterAccount} onValueChange={setFilterAccount}>
-                <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Account" /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-32 h-9"><SelectValue placeholder="Account" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Accounts</SelectItem>
                   {store.accounts.map((a) => (<SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>))}
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" className="h-9" onClick={() => store.exportCSV(monthTransactions)}>
+              <Button variant="outline" size="sm" className="h-9 w-full sm:w-auto" onClick={() => store.exportCSV(monthTransactions)}>
                 <Download className="w-4 h-4" />
               </Button>
             </div>

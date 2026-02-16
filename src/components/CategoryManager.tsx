@@ -37,7 +37,7 @@ export function CategoryManager({ categories, onAdd, onDelete, onUpdate }: Props
           <CardTitle className="text-sm font-semibold">Add Category</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -46,7 +46,7 @@ export function CategoryManager({ categories, onAdd, onDelete, onUpdate }: Props
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             />
             <Select value={type} onValueChange={(v) => setType(v as 'income' | 'expense')}>
-              <SelectTrigger className="w-28">
+              <SelectTrigger className="w-full sm:w-28">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -54,7 +54,7 @@ export function CategoryManager({ categories, onAdd, onDelete, onUpdate }: Props
                 <SelectItem value="expense">Expense</SelectItem>
               </SelectContent>
             </Select>
-            <Button size="icon" onClick={handleAdd}><Plus className="w-4 h-4" /></Button>
+            <Button size="icon" className="w-full sm:w-10" onClick={handleAdd}><Plus className="w-4 h-4" /></Button>
           </div>
         </CardContent>
       </Card>

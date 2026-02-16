@@ -1,7 +1,10 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import fs from 'fs';
 import mongoose from 'mongoose';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { DEFAULT_ACCOUNTS, DEFAULT_CATEGORIES } from './constants.js';
 import { FinanceDataModel } from './models/FinanceData.js';
 
@@ -10,6 +13,10 @@ dotenv.config();
 const app = express();
 const port = Number(process.env.PORT || 4000);
 const mongoUri = process.env.MONGODB_URI;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.resolve(__dirname, '../dist');
+const indexPath = path.join(distPath, 'index.html');
 
 if (!mongoUri) {
   console.error('Missing MONGODB_URI in environment variables.');
@@ -42,7 +49,10 @@ async function getOrCreateFinanceData() {
 }
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true });
+  res.json({
+    ok: true,
+    mongo: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  });
 });
 
 app.get('/api/finance', async (_req, res) => {
@@ -89,11 +99,24 @@ app.put('/api/finance', async (req, res) => {
   }
 });
 
+if (fs.existsSync(indexPath)) {
+  app.use(express.static(distPath));
+
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    return res.sendFile(indexPath);
+  });
+}
+
+let server;
+
 async function start() {
   try {
     await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
-    app.listen(port, () => {
+    server = app.listen(port, () => {
       console.log(`API listening on http://localhost:${port}`);
     });
   } catch (error) {
@@ -101,5 +124,29 @@ async function start() {
     process.exit(1);
   }
 }
+
+async function shutdown(signal) {
+  console.log(`${signal} received, shutting down gracefully...`);
+  try {
+    if (server) {
+      await new Promise((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve(undefined)));
+      });
+    }
+    await mongoose.connection.close();
+    process.exit(0);
+  } catch (error) {
+    console.error('Shutdown failed:', error);
+    process.exit(1);
+  }
+}
+
+process.on('SIGINT', () => {
+  void shutdown('SIGINT');
+});
+
+process.on('SIGTERM', () => {
+  void shutdown('SIGTERM');
+});
 
 start();

@@ -10,6 +10,7 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 const FINANCE_API = `${API_BASE_URL}/api/finance`;
+const REQUEST_TIMEOUT_MS = 15000;
 
 const EMPTY_DATA: FinanceData = {
   accounts: DEFAULT_ACCOUNTS,
@@ -18,25 +19,48 @@ const EMPTY_DATA: FinanceData = {
 };
 
 async function fetchFinanceData(): Promise<FinanceData> {
-  const response = await fetch(FINANCE_API);
-  if (!response.ok) {
-    throw new Error('Failed to fetch finance data');
-  }
-  return response.json();
+  return requestJson(FINANCE_API);
 }
 
 async function saveFinanceData(data: FinanceData): Promise<FinanceData> {
-  const response = await fetch(FINANCE_API, {
+  return requestJson(FINANCE_API, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
   });
-  if (!response.ok) {
-    throw new Error('Failed to save finance data');
+}
+
+async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, { ...init, signal: controller.signal });
+    if (!response.ok) {
+      const message = await extractErrorMessage(response);
+      throw new Error(message || 'Request failed');
+    }
+    return response.json() as Promise<T>;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Request timed out. Please try again.');
+    }
+    throw error instanceof Error ? error : new Error('Network request failed');
+  } finally {
+    window.clearTimeout(timeoutId);
   }
-  return response.json();
+}
+
+async function extractErrorMessage(response: Response): Promise<string | null> {
+  try {
+    const payload = await response.clone().json();
+    if (payload && typeof payload.message === 'string') return payload.message;
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export function useFinanceStore() {
@@ -115,7 +139,7 @@ export function useFinanceStore() {
     if (tx.type === 'expense' || tx.type === 'transfer') {
       const account = data.accounts.find((a) => a.id === tx.accountId);
       if (account && account.balance - tx.amount < 0) {
-        return `Insufficient balance in "${account.name}". Available: $${account.balance.toFixed(2)}`;
+        return `Insufficient balance in "${account.name}". Available: Rs.${account.balance.toFixed(2)}`;
       }
     }
 
@@ -177,7 +201,7 @@ export function useFinanceStore() {
     if (updated.type === 'expense' || updated.type === 'transfer') {
       const acc = accounts.find((a) => a.id === updated.accountId);
       if (acc && acc.balance - updated.amount < 0) {
-        return `Insufficient balance in "${acc.name}". Available: $${acc.balance.toFixed(2)}`;
+        return `Insufficient balance in "${acc.name}". Available: Rs.${acc.balance.toFixed(2)}`;
       }
     }
 

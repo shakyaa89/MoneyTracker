@@ -24,6 +24,7 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
   const [toAccountId, setToAccountId] = useState('');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [note, setNote] = useState('');
+  const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
     if (editTransaction) {
@@ -34,6 +35,7 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
       setToAccountId(editTransaction.toAccountId || '');
       setDate(editTransaction.date.slice(0, 10));
       setNote(editTransaction.note || '');
+      setValidationError('');
     } else {
       setType('expense');
       setAmount('');
@@ -42,19 +44,48 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
       setToAccountId('');
       setDate(new Date().toISOString().slice(0, 10));
       setNote('');
+      setValidationError('');
     }
   }, [editTransaction, open, accounts]);
 
   const filteredCategories = categories.filter((c) => c.type === type);
 
-  const handleSave = async () => {
+  const getValidationError = () => {
     const parsedAmount = parseFloat(amount);
     const description = note.trim();
-    if (!parsedAmount || parsedAmount <= 0) return;
-    if (!accountId) return;
-    if (type !== 'transfer' && !categoryId) return;
-    if (type === 'transfer' && !toAccountId) return;
-    if (!description) return;
+
+    if (!amount.trim() || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+      return 'Please enter a valid amount greater than 0.';
+    }
+    if (!date) {
+      return 'Please select a date.';
+    }
+    if (!accountId) {
+      return `Please select ${type === 'transfer' ? 'a from account' : 'an account'}.`;
+    }
+    if (type === 'transfer' && !toAccountId) {
+      return 'Please select a to account.';
+    }
+    if (type !== 'transfer' && !categoryId) {
+      return 'Please select a category.';
+    }
+    if (!description) {
+      return 'Please enter a description.';
+    }
+
+    return null;
+  };
+
+  const handleSave = async () => {
+    const error = getValidationError();
+    if (error) {
+      setValidationError(error);
+      return;
+    }
+
+    setValidationError('');
+    const parsedAmount = parseFloat(amount);
+    const description = note.trim();
 
     const saved = await onSave({
       id: editTransaction?.id || crypto.randomUUID(),
@@ -100,7 +131,10 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
               step="0.01"
               min="0"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => {
+                setAmount(e.target.value);
+                if (validationError) setValidationError('');
+              }}
               placeholder="0.00"
               className="font-mono text-lg"
               autoFocus
@@ -109,12 +143,25 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
 
           <div className="space-y-2">
             <Label>Date</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => {
+                setDate(e.target.value);
+                if (validationError) setValidationError('');
+              }}
+            />
           </div>
 
           <div className="space-y-2">
             <Label>{type === 'transfer' ? 'From Account' : 'Account'}</Label>
-            <Select value={accountId} onValueChange={setAccountId}>
+            <Select
+              value={accountId}
+              onValueChange={(value) => {
+                setAccountId(value);
+                if (validationError) setValidationError('');
+              }}
+            >
               <SelectTrigger><SelectValue placeholder="Select account" /></SelectTrigger>
               <SelectContent>
                 {accounts.map((a) => (
@@ -127,7 +174,13 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
           {type === 'transfer' && (
             <div className="space-y-2">
               <Label>To Account</Label>
-              <Select value={toAccountId} onValueChange={setToAccountId}>
+              <Select
+                value={toAccountId}
+                onValueChange={(value) => {
+                  setToAccountId(value);
+                  if (validationError) setValidationError('');
+                }}
+              >
                 <SelectTrigger><SelectValue placeholder="Select account" /></SelectTrigger>
                 <SelectContent>
                   {accounts.filter((a) => a.id !== accountId).map((a) => (
@@ -141,7 +194,13 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
           {type !== 'transfer' && (
             <div className="space-y-2">
               <Label>Category</Label>
-              <Select value={categoryId} onValueChange={setCategoryId}>
+              <Select
+                value={categoryId}
+                onValueChange={(value) => {
+                  setCategoryId(value);
+                  if (validationError) setValidationError('');
+                }}
+              >
                 <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                 <SelectContent>
                   {filteredCategories.map((c) => (
@@ -156,11 +215,18 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
             <Label>Description</Label>
             <Textarea
               value={note}
-              onChange={(e) => setNote(e.target.value)}
+              onChange={(e) => {
+                setNote(e.target.value);
+                if (validationError) setValidationError('');
+              }}
               placeholder="What is this transaction for?"
               rows={2}
             />
           </div>
+
+          {validationError && (
+            <p className="text-sm text-destructive">{validationError}</p>
+          )}
 
           <Button onClick={handleSave} className="w-full">
             {editTransaction ? 'Update' : 'Add'} Transaction

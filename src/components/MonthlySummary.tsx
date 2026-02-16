@@ -6,7 +6,12 @@ interface Props {
 }
 
 function formatCurrency(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n);
+  const absValue = Math.abs(n);
+  const formatted = new Intl.NumberFormat('en-IN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(absValue);
+  return `${n < 0 ? '-' : ''}Rs.${formatted}`;
 }
 
 export function MonthlySummary({ transactions }: Props) {
