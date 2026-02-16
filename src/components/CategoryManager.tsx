@@ -3,8 +3,10 @@ import { Category } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 interface Props {
   categories: Category[];
@@ -16,6 +18,10 @@ interface Props {
 export function CategoryManager({ categories, onAdd, onDelete, onUpdate }: Props) {
   const [name, setName] = useState('');
   const [type, setType] = useState<'income' | 'expense'>('expense');
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState('');
+  const [editName, setEditName] = useState('');
+  const [editType, setEditType] = useState<'income' | 'expense'>('expense');
 
   const handleAdd = () => {
     if (!name.trim()) return;
@@ -29,6 +35,25 @@ export function CategoryManager({ categories, onAdd, onDelete, onUpdate }: Props
 
   const incomeCategories = categories.filter((c) => c.type === 'income');
   const expenseCategories = categories.filter((c) => c.type === 'expense');
+
+  const handleStartEdit = (category: Category) => {
+    setEditingCategoryId(category.id);
+    setEditName(category.name);
+    setEditType(category.type);
+    setEditOpen(true);
+  };
+
+  const handleUpdate = () => {
+    if (!editingCategoryId || !editName.trim()) return;
+    onUpdate(editingCategoryId, {
+      name: editName.trim(),
+      type: editType,
+    });
+    setEditOpen(false);
+    setEditingCategoryId('');
+    setEditName('');
+    setEditType('expense');
+  };
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -69,14 +94,56 @@ export function CategoryManager({ categories, onAdd, onDelete, onUpdate }: Props
             {cats.map((c) => (
               <div key={c.id} className="flex items-center justify-between p-2.5 rounded-lg bg-card border">
                 <span className="text-sm">{c.name}</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-expense" onClick={() => onDelete(c.id)}>
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={() => handleStartEdit(c)}>
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-expense" onClick={() => onDelete(c.id)}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       ))}
+
+      <Dialog
+        open={editOpen}
+        onOpenChange={(open) => {
+          setEditOpen(open);
+          if (!open) {
+            setEditingCategoryId('');
+            setEditName('');
+            setEditType('expense');
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Category name" />
+            </div>
+            <div className="space-y-2">
+              <Label>Type</Label>
+              <Select value={editType} onValueChange={(v) => setEditType(v as 'income' | 'expense')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="income">Income</SelectItem>
+                  <SelectItem value="expense">Expense</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleUpdate} className="w-full">Save Changes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

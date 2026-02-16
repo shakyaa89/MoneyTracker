@@ -168,6 +168,9 @@ const Index = ({ onLock }: Props) => {
               onAddAccount={(account) => {
                 void store.addAccount(account);
               }}
+              onUpdateAccount={(id, updates) => {
+                void store.updateAccount(id, updates);
+              }}
               onDeleteAccount={(id) => {
                 const acc = store.accounts.find((a) => a.id === id);
                 const txCount = store.transactions.filter((t) => t.accountId === id || t.toAccountId === id).length;

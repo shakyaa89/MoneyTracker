@@ -1,6 +1,6 @@
 import { Account, ACCOUNT_TYPE_ICONS } from '@/types/finance';
 import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp, Plus, Trash2 } from 'lucide-react';
+import { TrendingUp, Plus, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -13,6 +13,7 @@ interface Props {
   accounts: Account[];
   netWorth: number;
   onAddAccount?: (account: Account) => void;
+  onUpdateAccount?: (id: string, updates: Partial<Account>) => void;
   onDeleteAccount?: (id: string) => void;
   readOnly?: boolean;
 }
@@ -26,8 +27,10 @@ function formatCurrency(amount: number) {
   return `${amount < 0 ? '-' : ''}Rs.${formatted}`;
 }
 
-export function NetWorthCard({ accounts, netWorth, onAddAccount, onDeleteAccount, readOnly }: Props) {
-  const [open, setOpen] = useState(false);
+export function NetWorthCard({ accounts, netWorth, onAddAccount, onUpdateAccount, onDeleteAccount, readOnly }: Props) {
+  const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingAccountId, setEditingAccountId] = useState('');
   const [name, setName] = useState('');
   const [type, setType] = useState<AccountType>('bank');
   const [balance, setBalance] = useState('');
@@ -45,7 +48,31 @@ export function NetWorthCard({ accounts, netWorth, onAddAccount, onDeleteAccount
     setName('');
     setType('bank');
     setBalance('');
-    setOpen(false);
+    setAddOpen(false);
+  };
+
+  const handleStartEdit = (account: Account) => {
+    setEditingAccountId(account.id);
+    setName(account.name);
+    setType(account.type);
+    setBalance(account.balance.toString());
+    setEditOpen(true);
+  };
+
+  const handleUpdate = () => {
+    if (!editingAccountId || !name.trim()) return;
+    const bal = parseFloat(balance);
+    if (Number.isNaN(bal) || bal < 0) return;
+    onUpdateAccount?.(editingAccountId, {
+      name: name.trim(),
+      type,
+      balance: bal,
+    });
+    setEditOpen(false);
+    setEditingAccountId('');
+    setName('');
+    setType('bank');
+    setBalance('');
   };
 
   return (
@@ -65,7 +92,7 @@ export function NetWorthCard({ accounts, netWorth, onAddAccount, onDeleteAccount
       {!readOnly && (
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Accounts</h3>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
               <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs">
                 <Plus className="w-3 h-3" /> Add
@@ -100,6 +127,48 @@ export function NetWorthCard({ accounts, netWorth, onAddAccount, onDeleteAccount
               </div>
             </DialogContent>
           </Dialog>
+
+          <Dialog
+            open={editOpen}
+            onOpenChange={(open) => {
+              setEditOpen(open);
+              if (!open) {
+                setEditingAccountId('');
+                setName('');
+                setType('bank');
+                setBalance('');
+              }
+            }}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Account</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <Label>Name</Label>
+                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Savings" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Type</Label>
+                  <Select value={type} onValueChange={(v) => setType(v as AccountType)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">💵 Cash</SelectItem>
+                      <SelectItem value="bank">🏦 Bank</SelectItem>
+                      <SelectItem value="card">💳 Card</SelectItem>
+                      <SelectItem value="wallet">👛 Wallet</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Balance</Label>
+                  <Input type="number" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="0" />
+                </div>
+                <Button onClick={handleUpdate} className="w-full">Save Changes</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
       {readOnly && (
@@ -121,6 +190,16 @@ export function NetWorthCard({ accounts, netWorth, onAddAccount, onDeleteAccount
                 <span className={`font-mono font-semibold text-sm ${account.balance >= 0 ? 'text-income' : 'text-expense'}`}>
                   {formatCurrency(account.balance)}
                 </span>
+                {!readOnly && onUpdateAccount && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground"
+                    onClick={() => handleStartEdit(account)}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                )}
                 {!readOnly && onDeleteAccount && (
                   <Button
                     variant="ghost"
