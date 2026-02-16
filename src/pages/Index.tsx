@@ -8,6 +8,7 @@ import { TransactionList } from '@/components/TransactionList';
 import { TransactionDialog } from '@/components/TransactionDialog';
 import { ExpensePieChart, IncomeExpenseBarChart } from '@/components/Charts';
 import { CategoryManager } from '@/components/CategoryManager';
+import { AccountCalculator } from '@/components/AccountCalculator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -101,12 +102,13 @@ const Index = ({ onLock }: Props) => {
           </div>
         )}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full h-auto grid-cols-2 sm:grid-cols-5">
+          <TabsList className="grid w-full h-auto grid-cols-3 sm:grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="accounts">Accounts</TabsTrigger>
             <TabsTrigger value="charts">Charts</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
+            <TabsTrigger value="calculator">Calculator</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab - Net worth + monthly summary only */}
@@ -161,7 +163,7 @@ const Index = ({ onLock }: Props) => {
           </TabsContent>
 
           {/* Accounts Tab */}
-          <TabsContent value="accounts">
+          <TabsContent value="accounts" className="space-y-4">
             <NetWorthCard
               accounts={store.accounts}
               netWorth={store.netWorth}
@@ -201,6 +203,10 @@ const Index = ({ onLock }: Props) => {
                 void store.updateCategory(id, updates);
               }}
             />
+          </TabsContent>
+
+          <TabsContent value="calculator">
+            <AccountCalculator accounts={store.accounts} />
           </TabsContent>
         </Tabs>
       </main>
