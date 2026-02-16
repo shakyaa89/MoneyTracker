@@ -73,7 +73,7 @@ const Index = ({ onLock }: Props) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b">
+      <header className="hidden sm:block sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b">
         <div className="container flex items-center justify-between h-14 max-w-2xl">
           <div className="flex items-center gap-2">
             <Wallet className="w-5 h-5 text-primary" />
@@ -83,7 +83,7 @@ const Index = ({ onLock }: Props) => {
             {onLock && (
               <Button type="button" size="sm" variant="outline" onClick={onLock} className="gap-1.5">
                 <Lock className="w-4 h-4" />
-                <span className="hidden sm:inline">Lock</span>
+                <span>Lock</span>
               </Button>
             )}
             <Button size="sm" onClick={() => { setEditTx(null); setTxDialogOpen(true); }} className="gap-1.5">
@@ -93,7 +93,7 @@ const Index = ({ onLock }: Props) => {
         </div>
       </header>
 
-      <main className="container max-w-2xl py-4 space-y-6 pb-20">
+      <main className="container max-w-2xl py-4 space-y-6 pb-24 sm:pb-20">
         {store.isSaving && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -201,6 +201,26 @@ const Index = ({ onLock }: Props) => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-xl sm:hidden">
+        <div className="container flex items-center justify-between h-14 max-w-2xl">
+          <div className="flex items-center gap-2">
+            <Wallet className="w-5 h-5 text-primary" />
+            <h1 className="text-lg font-bold">MoneyTrack</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {onLock && (
+              <Button type="button" size="sm" variant="outline" onClick={onLock} className="gap-1.5">
+                <Lock className="w-4 h-4" />
+                <span className="hidden sm:inline">Lock</span>
+              </Button>
+            )}
+            <Button size="sm" onClick={() => { setEditTx(null); setTxDialogOpen(true); }} className="gap-1.5">
+              <Plus className="w-4 h-4" /> Add
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <TransactionDialog
         open={txDialogOpen}
