@@ -26,6 +26,50 @@ if (!mongoUri) {
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
+function pad2(value) {
+  return value.toString().padStart(2, '0');
+}
+
+function toLocalDateTimeString(date) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
+
+function normalizeTransactionDate(value) {
+  if (typeof value === 'string') {
+    const dateOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnly) {
+      const [, y, m, d] = dateOnly;
+      return `${y}-${m}-${d}T00:00`;
+    }
+
+    const localDateTime = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2})?$/);
+    if (localDateTime) {
+      const [, y, m, d, h, min] = localDateTime;
+      return `${y}-${m}-${d}T${h}:${min}`;
+    }
+
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return toLocalDateTimeString(parsed);
+    }
+  }
+
+  return toLocalDateTimeString(new Date());
+}
+
+function sanitizeFinanceDataPayload(payload) {
+  return {
+    accounts: Array.isArray(payload.accounts) ? payload.accounts : [],
+    transactions: Array.isArray(payload.transactions)
+      ? payload.transactions.map((tx) => ({
+          ...tx,
+          date: normalizeTransactionDate(tx?.date),
+        }))
+      : [],
+    categories: Array.isArray(payload.categories) ? payload.categories : [],
+  };
+}
+
 async function getOrCreateFinanceData() {
   let data = await FinanceDataModel.findOne({ key: 'singleton' }).lean();
   if (!data) {
@@ -41,11 +85,11 @@ async function getOrCreateFinanceData() {
       categories: data.categories,
     };
   }
-  return {
+  return sanitizeFinanceDataPayload({
     accounts: data.accounts,
     transactions: data.transactions,
     categories: data.categories,
-  };
+  });
 }
 
 app.get('/api/health', (_req, res) => {
@@ -67,7 +111,7 @@ app.get('/api/finance', async (_req, res) => {
 
 app.put('/api/finance', async (req, res) => {
   try {
-    const payload = req.body;
+    const payload = sanitizeFinanceDataPayload(req.body || {});
     if (!payload || !Array.isArray(payload.accounts) || !Array.isArray(payload.transactions) || !Array.isArray(payload.categories)) {
       return res.status(400).json({ message: 'Invalid payload' });
     }

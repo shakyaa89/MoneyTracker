@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { nowLocalDateTimeString, normalizeFinanceDate, splitFinanceDateTime } from '@/lib/dateTime';
 
 interface Props {
   open: boolean;
@@ -16,13 +17,22 @@ interface Props {
   editTransaction?: Transaction | null;
 }
 
+function getCurrentLocalDateValue() {
+  return nowLocalDateTimeString().slice(0, 10);
+}
+
+function getCurrentLocalTimeValue() {
+  return nowLocalDateTimeString().slice(11, 16);
+}
+
 export function TransactionDialog({ open, onOpenChange, categories, accounts, onSave, editTransaction }: Props) {
   const [type, setType] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [accountId, setAccountId] = useState('');
   const [toAccountId, setToAccountId] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(getCurrentLocalDateValue());
+  const [time, setTime] = useState(getCurrentLocalTimeValue());
   const [note, setNote] = useState('');
   const [validationError, setValidationError] = useState('');
 
@@ -33,7 +43,9 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
       setCategoryId(editTransaction.categoryId || '');
       setAccountId(editTransaction.accountId);
       setToAccountId(editTransaction.toAccountId || '');
-      setDate(editTransaction.date.slice(0, 10));
+      const dateParts = splitFinanceDateTime(editTransaction.date);
+      setDate(dateParts.date);
+      setTime(dateParts.time);
       setNote(editTransaction.note || '');
       setValidationError('');
     } else {
@@ -42,7 +54,8 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
       setCategoryId('');
       setAccountId(accounts[0]?.id || '');
       setToAccountId('');
-      setDate(new Date().toISOString().slice(0, 10));
+      setDate(getCurrentLocalDateValue());
+      setTime(getCurrentLocalTimeValue());
       setNote('');
       setValidationError('');
     }
@@ -57,8 +70,11 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
     if (!amount.trim() || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
       return 'Please enter a valid amount greater than 0.';
     }
-    if (!date) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return 'Please select a date.';
+    }
+    if (!/^\d{2}:\d{2}$/.test(time)) {
+      return 'Please select a time.';
     }
     if (!accountId) {
       return `Please select ${type === 'transfer' ? 'a from account' : 'an account'}.`;
@@ -86,10 +102,11 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
     setValidationError('');
     const parsedAmount = parseFloat(amount);
     const description = note.trim();
+    const dateTime = normalizeFinanceDate(`${date}T${time}`);
 
     const saved = await onSave({
       id: editTransaction?.id || crypto.randomUUID(),
-      date,
+      date: dateTime,
       type,
       amount: parsedAmount,
       categoryId: type !== 'transfer' ? categoryId : undefined,
@@ -141,16 +158,29 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Date</Label>
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => {
-                setDate(e.target.value);
-                if (validationError) setValidationError('');
-              }}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => {
+                  setDate(e.target.value);
+                  if (validationError) setValidationError('');
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Time</Label>
+              <Input
+                type="time"
+                value={time}
+                onChange={(e) => {
+                  setTime(e.target.value);
+                  if (validationError) setValidationError('');
+                }}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

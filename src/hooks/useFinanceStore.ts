@@ -7,6 +7,7 @@ import {
   DEFAULT_CATEGORIES,
   DEFAULT_ACCOUNTS,
 } from '@/types/finance';
+import { normalizeFinanceDate, parseFinanceDate } from '@/lib/dateTime';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 const FINANCE_API = `${API_BASE_URL}/api/finance`;
@@ -18,17 +19,31 @@ const EMPTY_DATA: FinanceData = {
   categories: DEFAULT_CATEGORIES,
 };
 
+function sanitizeFinanceData(data: FinanceData): FinanceData {
+  return {
+    ...data,
+    transactions: Array.isArray(data.transactions)
+      ? data.transactions.map((tx) => ({
+          ...tx,
+          date: normalizeFinanceDate(tx.date),
+        }))
+      : [],
+  };
+}
+
 async function fetchFinanceData(): Promise<FinanceData> {
-  return requestJson(FINANCE_API);
+  const data = await requestJson<FinanceData>(FINANCE_API);
+  return sanitizeFinanceData(data);
 }
 
 async function saveFinanceData(data: FinanceData): Promise<FinanceData> {
+  const sanitizedData = sanitizeFinanceData(data);
   return requestJson(FINANCE_API, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(sanitizedData),
   });
 }
 
@@ -250,7 +265,8 @@ export function useFinanceStore() {
 
   const getMonthTransactions = useCallback((year: number, month: number) => {
     return data.transactions.filter((t) => {
-      const d = new Date(t.date);
+      const d = parseFinanceDate(t.date);
+      if (!d) return false;
       return d.getFullYear() === year && d.getMonth() === month;
     });
   }, [data.transactions]);

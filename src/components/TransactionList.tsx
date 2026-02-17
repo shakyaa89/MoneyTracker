@@ -2,6 +2,7 @@ import { Transaction, Category, Account } from '@/types/finance';
 import { format } from 'date-fns';
 import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getFinanceTimestamp, parseFinanceDate } from '@/lib/dateTime';
 
 interface Props {
   transactions: Transaction[];
@@ -29,8 +30,26 @@ const typeConfig = {
   transfer: { icon: ArrowLeftRight, colorClass: 'text-transfer', bgClass: 'bg-transfer-muted', sign: '' },
 };
 
+function formatTransactionDate(date: string) {
+  const parsed = parseFinanceDate(date);
+  if (!parsed) return 'No date';
+  return format(parsed, 'dd MMM yyyy');
+}
+
+function formatTransactionTime(date: string) {
+  const parsed = parseFinanceDate(date);
+  if (!parsed) return 'No time';
+  return format(parsed, 'hh:mm a');
+}
+
+function formatGroupDate(date: string) {
+  const parsed = parseFinanceDate(date);
+  if (!parsed) return 'Unknown date';
+  return format(parsed, 'EEE, MMM d');
+}
+
 export function TransactionList({ transactions, categories, accounts, onDelete, onEdit, searchQuery, filterAccount, filterCategory }: Props) {
-  let filtered = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  let filtered = [...transactions].sort((a, b) => getFinanceTimestamp(b.date) - getFinanceTimestamp(a.date));
 
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
@@ -61,7 +80,8 @@ export function TransactionList({ transactions, categories, accounts, onDelete, 
   // Group by date
   const grouped: Record<string, Transaction[]> = {};
   filtered.forEach((t) => {
-    const key = t.date.slice(0, 10);
+    const parsed = parseFinanceDate(t.date);
+    const key = parsed ? format(parsed, 'yyyy-MM-dd') : 'unknown-date';
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(t);
   });
@@ -71,7 +91,7 @@ export function TransactionList({ transactions, categories, accounts, onDelete, 
       {Object.entries(grouped).map(([date, txs]) => (
         <div key={date}>
           <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
-            {format(new Date(date), 'EEE, MMM d')}
+            {formatGroupDate(date)}
           </p>
           <div className="space-y-1.5">
             {txs.map((tx) => {
@@ -101,11 +121,19 @@ export function TransactionList({ transactions, categories, accounts, onDelete, 
                     <p className="text-xs text-muted-foreground truncate">
                       {subtitle}
                     </p>
+                    <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                      {formatTransactionTime(tx.date)}
+                    </p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className={`font-mono font-semibold text-sm ${cfg.colorClass}`}>
-                      {cfg.sign}{formatCurrency(tx.amount)}
-                    </span>
+                    <div className="text-right">
+                      <p className="text-[11px] text-muted-foreground leading-none mb-1">
+                        {formatTransactionDate(tx.date)}
+                      </p>
+                      <span className={`font-mono font-semibold text-sm ${cfg.colorClass}`}>
+                        {cfg.sign}{formatCurrency(tx.amount)}
+                      </span>
+                    </div>
                     <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(tx)}>
                         <Pencil className="w-3 h-3" />
