@@ -6,6 +6,7 @@ import { getFinanceTimestamp, parseFinanceDate } from '@/lib/dateTime';
 
 interface Props {
   transactions: Transaction[];
+  allTransactions?: Transaction[];
   categories: Category[];
   accounts: Account[];
   onDelete: (id: string) => void;
@@ -48,8 +49,64 @@ function formatGroupDate(date: string) {
   return format(parsed, 'EEE, MMM d');
 }
 
-export function TransactionList({ transactions, categories, accounts, onDelete, onEdit, searchQuery, filterAccount, filterCategory }: Props) {
+type BalanceSnapshot = {
+  before: number;
+  after: number;
+  toBefore?: number;
+  toAfter?: number;
+};
+
+function buildBalanceSnapshots(accounts: Account[], transactions: Transaction[]) {
+  const runningBalances = new Map(accounts.map((account) => [account.id, account.balance]));
+  const snapshots: Record<string, BalanceSnapshot> = {};
+
+  const sortedByNewest = [...transactions].sort(
+    (a, b) => getFinanceTimestamp(b.date) - getFinanceTimestamp(a.date),
+  );
+
+  sortedByNewest.forEach((tx) => {
+    if (tx.type === 'income') {
+      const after = runningBalances.get(tx.accountId) ?? 0;
+      const before = after - tx.amount;
+      snapshots[tx.id] = { before, after };
+      runningBalances.set(tx.accountId, before);
+      return;
+    }
+
+    if (tx.type === 'expense') {
+      const after = runningBalances.get(tx.accountId) ?? 0;
+      const before = after + tx.amount;
+      snapshots[tx.id] = { before, after };
+      runningBalances.set(tx.accountId, before);
+      return;
+    }
+
+    const fromAfter = runningBalances.get(tx.accountId) ?? 0;
+    const fromBefore = fromAfter + tx.amount;
+    let toBefore: number | undefined;
+    let toAfter: number | undefined;
+
+    if (tx.toAccountId) {
+      toAfter = runningBalances.get(tx.toAccountId) ?? 0;
+      toBefore = toAfter - tx.amount;
+      runningBalances.set(tx.toAccountId, toBefore);
+    }
+
+    snapshots[tx.id] = {
+      before: fromBefore,
+      after: fromAfter,
+      toBefore,
+      toAfter,
+    };
+    runningBalances.set(tx.accountId, fromBefore);
+  });
+
+  return snapshots;
+}
+
+export function TransactionList({ transactions, allTransactions, categories, accounts, onDelete, onEdit, searchQuery, filterAccount, filterCategory }: Props) {
   let filtered = [...transactions].sort((a, b) => getFinanceTimestamp(b.date) - getFinanceTimestamp(a.date));
+  const balanceSnapshots = buildBalanceSnapshots(accounts, allTransactions ?? transactions);
 
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
@@ -108,39 +165,102 @@ export function TransactionList({ transactions, categories, accounts, onDelete, 
               const subtitle = tx.type === 'transfer'
                 ? `${accName} → ${toAccName}`
                 : [catName || 'Uncategorized', accName].filter(Boolean).join(' · ');
+              const balance = balanceSnapshots[tx.id];
 
               return (
-                <div key={tx.id} className="flex items-center gap-3 p-3 rounded-lg bg-card border hover:border-primary/20 transition-colors group">
-                  <div className={`w-8 h-8 rounded-lg ${cfg.bgClass} flex items-center justify-center flex-shrink-0`}>
-                    <Icon className={`w-4 h-4 ${cfg.colorClass}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {title}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {subtitle}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-                      {formatTransactionTime(tx.date)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="text-right">
-                      <p className="text-[11px] text-muted-foreground leading-none mb-1">
-                        {formatTransactionDate(tx.date)}
-                      </p>
-                      <span className={`font-mono font-semibold text-sm ${cfg.colorClass}`}>
+                <div key={tx.id}>
+                  <div className="md:hidden rounded-xl bg-card border p-3 space-y-2">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-lg ${cfg.bgClass} flex items-center justify-center flex-shrink-0`}>
+                        <Icon className={`w-4 h-4 ${cfg.colorClass}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium leading-tight break-words">{title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 break-words">{subtitle}</p>
+                      </div>
+                      <span className={`font-mono font-semibold text-sm ${cfg.colorClass} whitespace-nowrap`}>
                         {cfg.sign}{formatCurrency(tx.amount)}
                       </span>
                     </div>
-                    <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
+
+                    <div className="text-[11px] text-muted-foreground flex items-center justify-between">
+                      <span>{formatTransactionDate(tx.date)}</span>
+                      <span>{formatTransactionTime(tx.date)}</span>
+                    </div>
+
+                    {balance && tx.type !== 'transfer' && (
+                      <p className="text-[11px] text-muted-foreground">
+                        Balance: {formatCurrency(balance.before)} → {formatCurrency(balance.after)}
+                      </p>
+                    )}
+                    {balance && tx.type === 'transfer' && (
+                      <div className="text-[11px] text-muted-foreground space-y-1">
+                        <p>{accName || 'From'}: {formatCurrency(balance.before)} → {formatCurrency(balance.after)}</p>
+                        {typeof balance.toBefore === 'number' && typeof balance.toAfter === 'number' && (
+                          <p>{toAccName || 'To'}: {formatCurrency(balance.toBefore)} → {formatCurrency(balance.toAfter)}</p>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-end gap-1 pt-1">
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(tx)}>
                         <Pencil className="w-3 h-3" />
                       </Button>
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-expense" onClick={() => onDelete(tx.id)}>
                         <Trash2 className="w-3 h-3" />
                       </Button>
+                    </div>
+                  </div>
+
+                  <div className="hidden md:flex items-center gap-3 p-3 rounded-lg bg-card border hover:border-primary/20 transition-colors group">
+                    <div className={`w-8 h-8 rounded-lg ${cfg.bgClass} flex items-center justify-center flex-shrink-0`}>
+                      <Icon className={`w-4 h-4 ${cfg.colorClass}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {title}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {subtitle}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                        {formatTransactionTime(tx.date)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="text-right">
+                        <p className="text-[11px] text-muted-foreground leading-none mb-1">
+                          {formatTransactionDate(tx.date)}
+                        </p>
+                        <span className={`font-mono font-semibold text-sm ${cfg.colorClass}`}>
+                          {cfg.sign}{formatCurrency(tx.amount)}
+                        </span>
+                        {balance && tx.type !== 'transfer' && (
+                          <p className="text-[11px] text-muted-foreground leading-none mt-1">
+                            {formatCurrency(balance.before)} → {formatCurrency(balance.after)}
+                          </p>
+                        )}
+                        {balance && tx.type === 'transfer' && (
+                          <>
+                            <p className="text-[11px] text-muted-foreground leading-none mt-1">
+                              {accName || 'From'}: {formatCurrency(balance.before)} → {formatCurrency(balance.after)}
+                            </p>
+                            {typeof balance.toBefore === 'number' && typeof balance.toAfter === 'number' && (
+                              <p className="text-[11px] text-muted-foreground leading-none mt-1">
+                                {toAccName || 'To'}: {formatCurrency(balance.toBefore)} → {formatCurrency(balance.toAfter)}
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(tx)}>
+                          <Pencil className="w-3 h-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-expense" onClick={() => onDelete(tx.id)}>
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>

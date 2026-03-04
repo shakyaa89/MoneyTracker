@@ -150,6 +150,7 @@ const Index = ({ onLock }: Props) => {
             </div>
             <TransactionList
               transactions={monthTransactions}
+              allTransactions={store.transactions}
               categories={store.categories}
               accounts={store.accounts}
               onDelete={(id) => {
