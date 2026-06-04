@@ -342,79 +342,7 @@ const Index = ({ onLock }: Props) => {
 
                   {/* Recent Transactions & Smart Insights Side-by-side */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                    {/* Recent Transactions Card */}
-                    <div className="card-premium p-5 space-y-4">
-                      <div className="flex items-center justify-between border-b pb-2">
-                        <div className="flex items-center gap-2">
-                          <History className="w-4 h-4 text-primary" />
-                          <h3 className="text-sm font-semibold">Recent Activity</h3>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setActiveTab('transactions')}
-                          className="h-7 text-xs text-muted-foreground hover:text-primary gap-0.5 px-2"
-                        >
-                          View All <ChevronRight className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
 
-                      {recentTransactions.length === 0 ? (
-                        <div className="flex items-center justify-center h-48 text-muted-foreground text-xs italic">
-                          No transactions recorded yet.
-                        </div>
-                      ) : (
-                        <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                          {recentTransactions.map((tx) => {
-                            const cat = store.categories.find((c) => c.id === tx.categoryId);
-                            const acc = store.accounts.find((a) => a.id === tx.accountId);
-                            const toAcc = tx.toAccountId ? store.accounts.find((a) => a.id === tx.toAccountId) : null;
-                            const isExpense = tx.type === 'expense';
-                            const isIncome = tx.type === 'income';
-
-                            return (
-                              <div
-                                key={tx.id}
-                                onClick={() => handleEditTx(tx)}
-                                className="flex items-center justify-between p-2.5 rounded-xl border border-transparent hover:border-border hover:bg-muted/30 transition-all cursor-pointer group"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isIncome
-                                      ? 'bg-income-muted text-income'
-                                      : isExpense
-                                        ? 'bg-expense-muted text-expense'
-                                        : 'bg-transfer-muted text-transfer'
-                                    }`}>
-                                    {isIncome ? (
-                                      <ArrowDownLeft className="w-4 h-4" />
-                                    ) : isExpense ? (
-                                      <ArrowUpRight className="w-4 h-4" />
-                                    ) : (
-                                      <ArrowLeftRight className="w-4 h-4" />
-                                    )}
-                                  </div>
-                                  <div>
-                                    <div className="text-xs font-semibold group-hover:text-primary transition-colors line-clamp-1">
-                                      {tx.note || cat?.name || 'Uncategorized'}
-                                    </div>
-                                    <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-mono">
-                                      {acc?.name}
-                                      {toAcc && ` → ${toAcc.name}`}
-                                      <span className="text-[8px] opacity-50">•</span>
-                                      {parseFinanceDate(tx.date)?.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) || ''}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className={`text-xs font-bold font-mono text-right ${isIncome ? 'text-income' : isExpense ? 'text-expense' : 'text-transfer'
-                                  }`}>
-                                  {isIncome ? '+' : isExpense ? '-' : ''}Rs.{tx.amount.toLocaleString('en-IN')}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
 
                     {/* Smart Insights Card */}
                     <div className="card-premium p-5 space-y-4">
@@ -438,10 +366,10 @@ const Index = ({ onLock }: Props) => {
                             <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all duration-500 ${expenseRatio > 80
-                                    ? 'bg-expense shadow-sm shadow-expense/20'
-                                    : expenseRatio > 50
-                                      ? 'bg-yellow-500 shadow-sm shadow-yellow-500/20'
-                                      : 'bg-income shadow-sm shadow-income/20'
+                                  ? 'bg-expense shadow-sm shadow-expense/20'
+                                  : expenseRatio > 50
+                                    ? 'bg-yellow-500 shadow-sm shadow-yellow-500/20'
+                                    : 'bg-income shadow-sm shadow-income/20'
                                   }`}
                                 style={{ width: `${expenseRatio}%` }}
                               />
@@ -488,6 +416,80 @@ const Index = ({ onLock }: Props) => {
                               </p>
                             </div>
                           </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Recent Transactions Card */}
+                    <div className="card-premium p-5 space-y-4">
+                      <div className="flex items-center justify-between border-b pb-2">
+                        <div className="flex items-center gap-2">
+                          <History className="w-4 h-4 text-primary" />
+                          <h3 className="text-sm font-semibold">Recent Activity</h3>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setActiveTab('transactions')}
+                          className="h-7 text-xs text-muted-foreground hover:text-primary gap-0.5 px-2"
+                        >
+                          View All <ChevronRight className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+
+                      {recentTransactions.length === 0 ? (
+                        <div className="flex items-center justify-center h-48 text-muted-foreground text-xs italic">
+                          No transactions recorded yet.
+                        </div>
+                      ) : (
+                        <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                          {recentTransactions.map((tx) => {
+                            const cat = store.categories.find((c) => c.id === tx.categoryId);
+                            const acc = store.accounts.find((a) => a.id === tx.accountId);
+                            const toAcc = tx.toAccountId ? store.accounts.find((a) => a.id === tx.toAccountId) : null;
+                            const isExpense = tx.type === 'expense';
+                            const isIncome = tx.type === 'income';
+
+                            return (
+                              <div
+                                key={tx.id}
+                                onClick={() => handleEditTx(tx)}
+                                className="flex items-center justify-between p-2.5 rounded-xl border border-transparent hover:border-border hover:bg-muted/30 transition-all cursor-pointer group"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isIncome
+                                    ? 'bg-income-muted text-income'
+                                    : isExpense
+                                      ? 'bg-expense-muted text-expense'
+                                      : 'bg-transfer-muted text-transfer'
+                                    }`}>
+                                    {isIncome ? (
+                                      <ArrowDownLeft className="w-4 h-4" />
+                                    ) : isExpense ? (
+                                      <ArrowUpRight className="w-4 h-4" />
+                                    ) : (
+                                      <ArrowLeftRight className="w-4 h-4" />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <div className="text-xs font-semibold group-hover:text-primary transition-colors line-clamp-1">
+                                      {tx.note || cat?.name || 'Uncategorized'}
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-mono">
+                                      {acc?.name}
+                                      {toAcc && ` → ${toAcc.name}`}
+                                      <span className="text-[8px] opacity-50">•</span>
+                                      {parseFinanceDate(tx.date)?.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) || ''}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className={`text-xs font-bold font-mono text-right ${isIncome ? 'text-income' : isExpense ? 'text-expense' : 'text-transfer'
+                                  }`}>
+                                  {isIncome ? '+' : isExpense ? '-' : ''}Rs.{tx.amount.toLocaleString('en-IN')}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -712,8 +714,8 @@ const Index = ({ onLock }: Props) => {
                         key={theme.id}
                         onClick={() => handleThemeChange(theme.id)}
                         className={`relative flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-300 hover:scale-[1.02] active:scale-95 ${isActive
-                            ? 'border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm'
-                            : 'border-border bg-card hover:bg-muted/50'
+                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20 shadow-sm'
+                          : 'border-border bg-card hover:bg-muted/50'
                           }`}
                       >
                         <div className="flex flex-col items-center gap-3">
