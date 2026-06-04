@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +22,23 @@ const App = () => {
     if (!APP_PIN) return true;
     return sessionStorage.getItem(SESSION_UNLOCK_KEY) === "true";
   });
+
+  // Load and apply theme configurations on startup
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("moneytrack-theme-color") || "teal";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+
+    const savedDark = localStorage.getItem("moneytrack-dark-mode");
+    if (savedDark === "true") {
+      document.documentElement.classList.add("dark");
+    } else if (savedDark === "false") {
+      document.documentElement.classList.remove("dark");
+    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      // Default to system preference
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("moneytrack-dark-mode", "true");
+    }
+  }, []);
 
   const handleUnlock = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

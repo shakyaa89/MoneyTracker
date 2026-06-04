@@ -24,9 +24,9 @@ function sanitizeFinanceData(data: FinanceData): FinanceData {
     ...data,
     transactions: Array.isArray(data.transactions)
       ? data.transactions.map((tx) => ({
-          ...tx,
-          date: normalizeFinanceDate(tx.date),
-        }))
+        ...tx,
+        date: normalizeFinanceDate(tx.date),
+      }))
       : [],
   };
 }

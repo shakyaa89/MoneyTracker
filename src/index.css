@@ -95,6 +95,264 @@ body {
     --transfer-foreground: 224 25% 6%;
     --transfer-muted: 252 50% 12%;
   }
+
+  /* Theme color overrides */
+  
+  /* Teal Theme (Default) */
+  [data-theme="teal"] {
+    --primary: 172 66% 40%;
+    --accent: 172 50% 92%;
+    --accent-foreground: 172 66% 25%;
+    --ring: 172 66% 40%;
+  }
+  .dark [data-theme="teal"],
+  [data-theme="teal"].dark,
+  .dark[data-theme="teal"] {
+    --primary: 172 66% 45%;
+    --accent: 172 40% 13%;
+    --accent-foreground: 172 66% 60%;
+    --ring: 172 66% 45%;
+  }
+
+  /* Ocean Blue Theme */
+  [data-theme="blue"] {
+    --primary: 217 91% 56%;
+    --accent: 217 90% 95%;
+    --accent-foreground: 217 91% 25%;
+    --ring: 217 91% 56%;
+  }
+  .dark [data-theme="blue"],
+  [data-theme="blue"].dark,
+  .dark[data-theme="blue"] {
+    --primary: 217 91% 60%;
+    --accent: 217 60% 14%;
+    --accent-foreground: 217 91% 75%;
+    --ring: 217 91% 60%;
+  }
+
+  /* Royal Violet Theme */
+  [data-theme="violet"] {
+    --primary: 262 83% 58%;
+    --accent: 262 70% 95%;
+    --accent-foreground: 262 83% 30%;
+    --ring: 262 83% 58%;
+  }
+  .dark [data-theme="violet"],
+  [data-theme="violet"].dark,
+  .dark[data-theme="violet"] {
+    --primary: 262 83% 66%;
+    --accent: 262 50% 15%;
+    --accent-foreground: 262 83% 75%;
+    --ring: 262 83% 66%;
+  }
+
+  /* Ruby Red Theme */
+  [data-theme="red"] {
+    --primary: 0 72% 51%;
+    --accent: 0 70% 94%;
+    --accent-foreground: 0 72% 25%;
+    --ring: 0 72% 51%;
+  }
+  .dark [data-theme="red"],
+  [data-theme="red"].dark,
+  .dark[data-theme="red"] {
+    --primary: 0 72% 60%;
+    --accent: 0 50% 14%;
+    --accent-foreground: 0 72% 70%;
+    --ring: 0 72% 60%;
+  }
+
+  /* Sunset Orange Theme */
+  [data-theme="orange"] {
+    --primary: 24 95% 50%;
+    --accent: 24 90% 94%;
+    --accent-foreground: 24 95% 25%;
+    --ring: 24 95% 50%;
+  }
+  .dark [data-theme="orange"],
+  [data-theme="orange"].dark,
+  .dark[data-theme="orange"] {
+    --primary: 24 95% 58%;
+    --accent: 24 60% 14%;
+    --accent-foreground: 24 95% 70%;
+    --ring: 24 95% 58%;
+  }
+
+  /* Emerald Green Theme */
+  [data-theme="emerald"] {
+    --primary: 142 72% 41%;
+    --accent: 142 60% 93%;
+    --accent-foreground: 142 72% 20%;
+    --ring: 142 72% 41%;
+  }
+  .dark [data-theme="emerald"],
+  [data-theme="emerald"].dark,
+  .dark[data-theme="emerald"] {
+    --primary: 142 70% 45%;
+    --accent: 142 40% 12%;
+    --accent-foreground: 142 70% 65%;
+    --ring: 142 70% 45%;
+  }
+
+  /* Sky Blue Theme */
+  [data-theme="sky"] {
+    --primary: 199 89% 48%;
+    --accent: 199 80% 93%;
+    --accent-foreground: 199 89% 22%;
+    --ring: 199 89% 48%;
+  }
+  .dark [data-theme="sky"],
+  [data-theme="sky"].dark,
+  .dark[data-theme="sky"] {
+    --primary: 199 89% 56%;
+    --accent: 199 50% 13%;
+    --accent-foreground: 199 89% 70%;
+    --ring: 199 89% 56%;
+  }
+
+  /* Indigo Theme */
+  [data-theme="indigo"] {
+    --primary: 239 84% 59%;
+    --accent: 239 70% 95%;
+    --accent-foreground: 239 84% 28%;
+    --ring: 239 84% 59%;
+  }
+  .dark [data-theme="indigo"],
+  [data-theme="indigo"].dark,
+  .dark[data-theme="indigo"] {
+    --primary: 239 84% 67%;
+    --accent: 239 50% 15%;
+    --accent-foreground: 239 84% 78%;
+    --ring: 239 84% 67%;
+  }
+
+  /* Fuchsia Pink Theme */
+  [data-theme="fuchsia"] {
+    --primary: 322 81% 53%;
+    --accent: 322 70% 94%;
+    --accent-foreground: 322 81% 25%;
+    --ring: 322 81% 53%;
+  }
+  .dark [data-theme="fuchsia"],
+  [data-theme="fuchsia"].dark,
+  .dark[data-theme="fuchsia"] {
+    --primary: 322 81% 60%;
+    --accent: 322 50% 14%;
+    --accent-foreground: 322 81% 75%;
+    --ring: 322 81% 60%;
+  }
+
+  /* Rose Pink Theme */
+  [data-theme="rose"] {
+    --primary: 346 84% 50%;
+    --accent: 346 80% 94%;
+    --accent-foreground: 346 84% 25%;
+    --ring: 346 84% 50%;
+  }
+  .dark [data-theme="rose"],
+  [data-theme="rose"].dark,
+  .dark[data-theme="rose"] {
+    --primary: 346 84% 58%;
+    --accent: 346 50% 14%;
+    --accent-foreground: 346 84% 75%;
+    --ring: 346 84% 58%;
+  }
+
+  /* Amber Gold Theme */
+  [data-theme="amber"] {
+    --primary: 45 93% 47%;
+    --accent: 45 80% 92%;
+    --accent-foreground: 45 93% 20%;
+    --ring: 45 93% 47%;
+  }
+  .dark [data-theme="amber"],
+  [data-theme="amber"].dark,
+  .dark[data-theme="amber"] {
+    --primary: 45 93% 54%;
+    --accent: 45 60% 13%;
+    --accent-foreground: 45 93% 68%;
+    --ring: 45 93% 54%;
+  }
+
+  /* Lime Theme */
+  [data-theme="lime"] {
+    --primary: 84 81% 40%;
+    --accent: 84 60% 92%;
+    --accent-foreground: 84 81% 18%;
+    --ring: 84 81% 40%;
+  }
+  .dark [data-theme="lime"],
+  [data-theme="lime"].dark,
+  .dark[data-theme="lime"] {
+    --primary: 84 81% 48%;
+    --accent: 84 40% 12%;
+    --accent-foreground: 84 81% 65%;
+    --ring: 84 81% 48%;
+  }
+
+  /* Cyan Theme */
+  [data-theme="cyan"] {
+    --primary: 188 86% 40%;
+    --accent: 188 60% 92%;
+    --accent-foreground: 188 86% 20%;
+    --ring: 188 86% 40%;
+  }
+  .dark [data-theme="cyan"],
+  [data-theme="cyan"].dark,
+  .dark[data-theme="cyan"] {
+    --primary: 188 86% 48%;
+    --accent: 188 40% 12%;
+    --accent-foreground: 188 86% 68%;
+    --ring: 188 86% 48%;
+  }
+
+  /* Slate Steel Theme */
+  [data-theme="slate"] {
+    --primary: 215 25% 40%;
+    --accent: 215 20% 92%;
+    --accent-foreground: 215 25% 20%;
+    --ring: 215 25% 40%;
+  }
+  .dark [data-theme="slate"],
+  [data-theme="slate"].dark,
+  .dark[data-theme="slate"] {
+    --primary: 215 25% 55%;
+    --accent: 215 20% 15%;
+    --accent-foreground: 215 25% 80%;
+    --ring: 215 25% 55%;
+  }
+
+  /* Coffee Brown Theme */
+  [data-theme="coffee"] {
+    --primary: 30 50% 45%;
+    --accent: 30 40% 93%;
+    --accent-foreground: 30 50% 22%;
+    --ring: 30 50% 45%;
+  }
+  .dark [data-theme="coffee"],
+  [data-theme="coffee"].dark,
+  .dark[data-theme="coffee"] {
+    --primary: 30 50% 55%;
+    --accent: 30 30% 14%;
+    --accent-foreground: 30 50% 75%;
+    --ring: 30 50% 55%;
+  }
+
+  /* Forest Green Theme */
+  [data-theme="forest"] {
+    --primary: 120 45% 38%;
+    --accent: 120 40% 93%;
+    --accent-foreground: 120 45% 18%;
+    --ring: 120 45% 38%;
+  }
+  .dark [data-theme="forest"],
+  [data-theme="forest"].dark,
+  .dark[data-theme="forest"] {
+    --primary: 120 40% 45%;
+    --accent: 120 30% 12%;
+    --accent-foreground: 120 40% 70%;
+    --ring: 120 40% 45%;
+  }
 }
 
 @layer base {
