@@ -1,6 +1,6 @@
-import { Account, ACCOUNT_TYPE_ICONS } from '@/types/finance';
+import { Account } from '@/types/finance';
 import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp, Plus, Trash2, Pencil } from 'lucide-react';
+import { TrendingUp, Plus, Trash2, Pencil, Banknote, Building2, CreditCard, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -34,6 +34,13 @@ export function NetWorthCard({ accounts, netWorth, onAddAccount, onUpdateAccount
   const [name, setName] = useState('');
   const [type, setType] = useState<AccountType>('bank');
   const [balance, setBalance] = useState('');
+
+  const accountTypeOptions: Array<{ value: AccountType; label: string; icon: typeof Banknote }> = [
+    { value: 'cash', label: 'Cash', icon: Banknote },
+    { value: 'bank', label: 'Bank', icon: Building2 },
+    { value: 'card', label: 'Card', icon: CreditCard },
+    { value: 'wallet', label: 'Wallet', icon: Wallet },
+  ];
 
   const handleAdd = () => {
     if (!name.trim()) return;
@@ -77,53 +84,61 @@ export function NetWorthCard({ accounts, netWorth, onAddAccount, onUpdateAccount
 
   return (
     <div className="space-y-4 animate-slide-up">
-      <Card className="border-0 bg-primary/10">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-2 text-muted-foreground mb-1">
-            <TrendingUp className="w-4 h-4" />
-            <span className="text-sm font-medium uppercase tracking-wider">Net Worth</span>
-          </div>
-          <p className="text-3xl font-bold tracking-tight text-foreground font-mono">
-            {formatCurrency(netWorth)}
-          </p>
-        </CardContent>
-      </Card>
+      <div className="rounded-2xl p-5 sm:p-6 networth-card-gradient shadow-md relative overflow-hidden group hover:scale-[1.01] transition-all duration-300">
+        <div className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+          <Wallet className="w-40 h-40" />
+        </div>
+        <div className="flex items-center gap-2 text-primary mb-1.5">
+          <TrendingUp className="w-4.5 h-4.5" />
+          <span className="text-xs font-bold uppercase tracking-widest">Net Worth Balance</span>
+        </div>
+        <p className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground font-mono">
+          {formatCurrency(netWorth)}
+        </p>
+      </div>
 
       {!readOnly && (
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Accounts</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Accounts</h3>
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs">
-                <Plus className="w-3 h-3" /> Add
+              <Button size="sm" className="h-8 gap-1 text-xs rounded-xl shadow-sm">
+                <Plus className="w-3.5 h-3.5" /> Add Account
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="rounded-2xl max-w-sm">
               <DialogHeader>
                 <DialogTitle>Add Account</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-2">
                 <div className="space-y-2">
                   <Label>Name</Label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Savings" />
+                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Savings" className="rounded-xl" />
                 </div>
                 <div className="space-y-2">
                   <Label>Type</Label>
                   <Select value={type} onValueChange={(v) => setType(v as AccountType)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cash">💵 Cash</SelectItem>
-                      <SelectItem value="bank">🏦 Bank</SelectItem>
-                      <SelectItem value="card">💳 Card</SelectItem>
-                      <SelectItem value="wallet">👛 Wallet</SelectItem>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {accountTypeOptions.map((option) => {
+                        const Icon = option.icon;
+                        return (
+                          <SelectItem key={option.value} value={option.value}>
+                            <span className="inline-flex items-center gap-2">
+                              <Icon className="h-4 w-4" />
+                              {option.label}
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Starting Balance</Label>
-                  <Input type="number" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="0" />
+                  <Input type="number" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="0" className="rounded-xl" />
                 </div>
-                <Button onClick={handleAdd} className="w-full">Add Account</Button>
+                <Button onClick={handleAdd} className="w-full rounded-xl">Add Account</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -140,79 +155,92 @@ export function NetWorthCard({ accounts, netWorth, onAddAccount, onUpdateAccount
               }
             }}
           >
-            <DialogContent>
+            <DialogContent className="rounded-2xl max-w-sm">
               <DialogHeader>
                 <DialogTitle>Edit Account</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-2">
                 <div className="space-y-2">
                   <Label>Name</Label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Savings" />
+                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Savings" className="rounded-xl" />
                 </div>
                 <div className="space-y-2">
                   <Label>Type</Label>
                   <Select value={type} onValueChange={(v) => setType(v as AccountType)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cash">💵 Cash</SelectItem>
-                      <SelectItem value="bank">🏦 Bank</SelectItem>
-                      <SelectItem value="card">💳 Card</SelectItem>
-                      <SelectItem value="wallet">👛 Wallet</SelectItem>
+                    <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {accountTypeOptions.map((option) => {
+                        const Icon = option.icon;
+                        return (
+                          <SelectItem key={option.value} value={option.value}>
+                            <span className="inline-flex items-center gap-2">
+                              <Icon className="h-4 w-4" />
+                              {option.label}
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Balance</Label>
-                  <Input type="number" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="0" />
+                  <Input type="number" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="0" className="rounded-xl" />
                 </div>
-                <Button onClick={handleUpdate} className="w-full">Save Changes</Button>
+                <Button onClick={handleUpdate} className="w-full rounded-xl">Save Changes</Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
       )}
       {readOnly && (
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Accounts</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Accounts</h3>
       )}
 
-      <div className="grid gap-2">
+      <div className="grid gap-2 sm:gap-2.5">
         {accounts.map((account) => (
-          <Card key={account.id} className="border shadow-none">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">{ACCOUNT_TYPE_ICONS[account.type]}</span>
-                <div>
-                  <p className="font-medium text-sm">{account.name}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{account.type}</p>
-                </div>
+          <div key={account.id} className="card-premium p-3.5 sm:p-4 flex items-center justify-between hover-scale-subtle">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground flex-shrink-0">
+                {(() => {
+                  const match = accountTypeOptions.find((option) => option.value === account.type);
+                  const Icon = match?.icon || Banknote;
+                  return <Icon className="h-4.5 w-4.5 text-muted-foreground" />;
+                })()}
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`font-mono font-semibold text-sm ${account.balance >= 0 ? 'text-income' : 'text-expense'}`}>
-                  {formatCurrency(account.balance)}
-                </span>
-                {!readOnly && onUpdateAccount && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-foreground"
-                    onClick={() => handleStartEdit(account)}
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </Button>
-                )}
-                {!readOnly && onDeleteAccount && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-expense"
-                    onClick={() => onDeleteAccount(account.id)}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                )}
+              <div className="min-w-0">
+                <p className="font-semibold text-xs sm:text-sm truncate">{account.name}</p>
+                <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider leading-none mt-0.5">{account.type}</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className={`font-mono font-bold text-xs sm:text-sm ${account.balance >= 0 ? 'text-income' : 'text-expense'}`}>
+                {formatCurrency(account.balance)}
+              </span>
+              {!readOnly && onUpdateAccount && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-xl text-muted-foreground hover:bg-secondary"
+                  onClick={() => handleStartEdit(account)}
+                  aria-label={`Edit ${account.name}`}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </Button>
+              )}
+              {!readOnly && onDeleteAccount && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-xl text-muted-foreground hover:text-expense hover:bg-secondary"
+                  onClick={() => onDeleteAccount(account.id)}
+                  aria-label={`Delete ${account.name}`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
+            </div>
+          </div>
         ))}
       </div>
     </div>

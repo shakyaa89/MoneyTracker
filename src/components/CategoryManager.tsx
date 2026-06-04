@@ -56,54 +56,55 @@ export function CategoryManager({ categories, onAdd, onDelete, onUpdate }: Props
   };
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">Add Category</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Category name"
-              className="flex-1"
-              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            />
-            <Select value={type} onValueChange={(v) => setType(v as 'income' | 'expense')}>
-              <SelectTrigger className="w-full sm:w-28">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="income">Income</SelectItem>
-                <SelectItem value="expense">Expense</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button size="icon" className="w-full sm:w-10" onClick={handleAdd}><Plus className="w-4 h-4" /></Button>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-6 animate-fade-in">
+      <div className="card-premium p-5 space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Add Category</h3>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Category name"
+            className="flex-1 rounded-xl"
+            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          />
+          <Select value={type} onValueChange={(v) => setType(v as 'income' | 'expense')}>
+            <SelectTrigger className="w-full sm:w-32 rounded-xl">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="income" className="rounded-lg">Income</SelectItem>
+              <SelectItem value="expense" className="rounded-lg">Expense</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={handleAdd} className="rounded-xl gap-2 font-semibold shadow-sm px-5">
+            <Plus className="w-4 h-4" /> Add
+          </Button>
+        </div>
+      </div>
 
       {[
         { title: 'Income Categories', cats: incomeCategories, colorClass: 'text-income' },
         { title: 'Expense Categories', cats: expenseCategories, colorClass: 'text-expense' },
       ].map(({ title, cats, colorClass }) => (
-        <div key={title}>
-          <h4 className={`text-xs font-semibold uppercase tracking-wider mb-2 ${colorClass}`}>{title}</h4>
-          <div className="space-y-1">
+        <div key={title} className="space-y-2">
+          <h4 className={`text-xs font-bold uppercase tracking-wider ${colorClass}`}>{title}</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {cats.map((c) => (
-              <div key={c.id} className="flex items-center justify-between p-2.5 rounded-lg bg-card border">
-                <span className="text-sm">{c.name}</span>
+              <div key={c.id} className="card-premium p-3.5 flex items-center justify-between hover-scale-subtle">
+                <span className="text-sm font-semibold">{c.name}</span>
                 <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={() => handleStartEdit(c)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl text-muted-foreground hover:bg-secondary" onClick={() => handleStartEdit(c)} aria-label={`Edit ${c.name}`}>
                     <Pencil className="w-3.5 h-3.5" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-expense" onClick={() => onDelete(c.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl text-muted-foreground hover:text-expense hover:bg-secondary" onClick={() => onDelete(c.id)} aria-label={`Delete ${c.name}`}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
               </div>
             ))}
+            {cats.length === 0 && (
+              <p className="text-xs text-muted-foreground py-2 col-span-full italic">No categories created yet</p>
+            )}
           </div>
         </div>
       ))}
@@ -119,28 +120,28 @@ export function CategoryManager({ categories, onAdd, onDelete, onUpdate }: Props
           }
         }}
       >
-        <DialogContent>
+        <DialogContent className="rounded-2xl max-w-sm">
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
               <Label>Name</Label>
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Category name" />
+              <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Category name" className="rounded-xl" />
             </div>
             <div className="space-y-2">
               <Label>Type</Label>
               <Select value={editType} onValueChange={(v) => setEditType(v as 'income' | 'expense')}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="income">Income</SelectItem>
-                  <SelectItem value="expense">Expense</SelectItem>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="income" className="rounded-lg">Income</SelectItem>
+                  <SelectItem value="expense" className="rounded-lg">Expense</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleUpdate} className="w-full">Save Changes</Button>
+            <Button onClick={handleUpdate} className="w-full rounded-xl">Save Changes</Button>
           </div>
         </DialogContent>
       </Dialog>

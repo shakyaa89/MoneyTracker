@@ -17,6 +17,7 @@ const TransactionSchema = new mongoose.Schema(
     type: { type: String, enum: ['income', 'expense', 'transfer'], required: true },
     amount: { type: Number, required: true },
     categoryId: { type: String },
+
     accountId: { type: String, required: true },
     toAccountId: { type: String },
     note: { type: String },

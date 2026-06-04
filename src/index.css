@@ -1,128 +1,99 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body{
+body {
   overflow-y: scroll;
+  font-family: 'Outfit', sans-serif;
 }
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 25% 10%;
+    --background: 220 25% 97%;
+    --foreground: 224 71.4% 4.1%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card-foreground: 224 71.4% 4.1%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover-foreground: 224 71.4% 4.1%;
 
     --primary: 172 66% 40%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 220 25% 10%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
 
-    --muted: 220 14% 95%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
 
     --accent: 172 50% 92%;
     --accent-foreground: 172 66% 25%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
 
-    --border: 220 13% 90%;
-    --input: 220 13% 90%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
     --ring: 172 66% 40%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    --income: 152 60% 42%;
+    --income: 152 76% 37%;
     --income-foreground: 0 0% 100%;
-    --income-muted: 152 50% 94%;
+    --income-muted: 152 70% 95%;
 
-    --expense: 0 72% 55%;
+    --expense: 350 84% 52%;
     --expense-foreground: 0 0% 100%;
-    --expense-muted: 0 60% 96%;
+    --expense-muted: 350 70% 96%;
 
-    --transfer: 220 60% 55%;
+    --transfer: 252 62% 55%;
     --transfer-foreground: 0 0% 100%;
-    --transfer-muted: 220 50% 95%;
-
-    --chart-1: 172 66% 40%;
-    --chart-2: 152 60% 42%;
-    --chart-3: 0 72% 55%;
-    --chart-4: 35 90% 55%;
-    --chart-5: 262 60% 55%;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --transfer-muted: 252 50% 96%;
   }
 
   .dark {
-    --background: 224 25% 8%;
-    --foreground: 210 20% 95%;
+    --background: 224 25% 6%;
+    --foreground: 210 20% 98%;
 
-    --card: 224 22% 11%;
-    --card-foreground: 210 20% 95%;
+    --card: 224 25% 9%;
+    --card-foreground: 210 20% 98%;
 
-    --popover: 224 22% 11%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 224 25% 9%;
+    --popover-foreground: 210 20% 98%;
 
-    --primary: 172 66% 44%;
-    --primary-foreground: 224 25% 8%;
+    --primary: 172 66% 45%;
+    --primary-foreground: 224 25% 6%;
 
-    --secondary: 224 18% 16%;
-    --secondary-foreground: 210 20% 90%;
+    --secondary: 224 18% 13%;
+    --secondary-foreground: 210 20% 98%;
 
-    --muted: 224 18% 16%;
-    --muted-foreground: 220 12% 55%;
+    --muted: 224 18% 13%;
+    --muted-foreground: 217.9 10.6% 64.9%;
 
-    --accent: 172 40% 15%;
+    --accent: 172 40% 13%;
     --accent-foreground: 172 66% 60%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 210 20% 98%;
 
-    --border: 224 18% 18%;
-    --input: 224 18% 18%;
-    --ring: 172 66% 44%;
+    --border: 224 18% 15%;
+    --input: 224 18% 15%;
+    --ring: 172 66% 45%;
 
-    --income: 152 60% 48%;
-    --income-foreground: 224 25% 8%;
-    --income-muted: 152 40% 14%;
+    --income: 152 70% 45%;
+    --income-foreground: 224 25% 6%;
+    --income-muted: 152 50% 11%;
 
-    --expense: 0 72% 58%;
-    --expense-foreground: 224 25% 8%;
-    --expense-muted: 0 40% 14%;
+    --expense: 350 78% 56%;
+    --expense-foreground: 224 25% 6%;
+    --expense-muted: 350 50% 12%;
 
-    --transfer: 220 60% 60%;
-    --transfer-foreground: 224 25% 8%;
-    --transfer-muted: 220 40% 14%;
-
-    --chart-1: 172 66% 44%;
-    --chart-2: 152 60% 48%;
-    --chart-3: 0 72% 58%;
-    --chart-4: 35 90% 60%;
-    --chart-5: 262 60% 60%;
-
-    --sidebar-background: 224 22% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 18% 15%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 224 18% 18%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --transfer: 252 62% 62%;
+    --transfer-foreground: 224 25% 6%;
+    --transfer-muted: 252 50% 12%;
   }
 }
 
@@ -155,4 +126,47 @@ body{
   .bg-transfer-muted {
     background-color: hsl(var(--transfer-muted));
   }
+
+  /* Glassmorphism Styles */
+  .sidebar-glass {
+    @apply bg-card/60 backdrop-blur-xl border-r border-border;
+  }
+  .card-premium {
+    @apply rounded-2xl bg-card/70 backdrop-blur-md border border-border shadow-sm hover:shadow-md transition-all duration-300;
+  }
+  .networth-card-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--primary) / 0.03) 100%);
+    border: 1px solid hsl(var(--primary) / 0.25);
+  }
+  
+  /* Micro-animations */
+  .hover-scale-subtle {
+    @apply transition-transform duration-200 hover:scale-[1.015];
+  }
+  .hover-scale-nav {
+    @apply transition-all duration-200 hover:translate-x-1;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Custom animated scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
 }

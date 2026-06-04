@@ -153,68 +153,68 @@ export function AccountCalculator({ accounts }: Props) {
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold">Account Calculator (View Only)</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="card-premium p-6 space-y-4 animate-fade-in">
+      <div className="space-y-1">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Account Calculator</h3>
         <p className="text-xs text-muted-foreground">
           Select an account and run calculations on its balance. This does not save or change account data.
         </p>
+      </div>
 
-        <div className="space-y-2">
-          <Label>Account</Label>
-          <Select value={accountId} onValueChange={setAccountId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select account" />
-            </SelectTrigger>
-            <SelectContent>
-              {accounts.map((account) => (
-                <SelectItem key={account.id} value={account.id}>
-                  {account.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="space-y-2">
+        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Account</Label>
+        <Select value={accountId} onValueChange={setAccountId}>
+          <SelectTrigger className="rounded-xl">
+            <SelectValue placeholder="Select account" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl">
+            {accounts.map((account) => (
+              <SelectItem key={account.id} value={account.id} className="rounded-lg">
+                {account.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-1">
+          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Current balance</p>
+          <p className="font-mono text-base font-extrabold text-foreground">{formatCurrency(baseBalance)}</p>
         </div>
 
-        <div className="rounded-lg border bg-muted/40 p-3 space-y-1">
-          <p className="text-xs text-muted-foreground">Current balance</p>
-          <p className="font-mono text-sm font-semibold">{formatCurrency(baseBalance)}</p>
+        <div className="rounded-xl border border-border bg-card/50 p-4 flex flex-col justify-between">
+          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider truncate mb-1">{expression || 'Ready'}</p>
+          <p className="font-mono text-lg font-extrabold text-right text-primary">{formatCurrency(Number(displayValue) || 0)}</p>
         </div>
+      </div>
 
-        <div className="rounded-lg border bg-card p-3">
-          <p className="text-xs text-muted-foreground truncate">{expression || 'Ready'}</p>
-          <p className="font-mono text-xl font-semibold text-right">{formatCurrency(Number(displayValue) || 0)}</p>
-        </div>
+      <div className="grid grid-cols-4 gap-2 pt-2">
+        <Button type="button" variant="secondary" className="rounded-xl font-bold h-11 hover-scale-subtle" onClick={handleAllClear}>AC</Button>
+        <Button type="button" variant="secondary" className="rounded-xl font-bold h-11 hover-scale-subtle" onClick={handleClearEntry}>CE</Button>
+        <Button type="button" variant="secondary" className="rounded-xl font-bold h-11 hover-scale-subtle" onClick={handlePercent}>%</Button>
+        <Button type="button" variant="secondary" className="rounded-xl font-bold h-11 hover-scale-subtle text-primary" onClick={() => handleOperation('divide')}>÷</Button>
 
-        <div className="grid grid-cols-4 gap-2">
-          <Button type="button" variant="outline" onClick={handleAllClear}>AC</Button>
-          <Button type="button" variant="outline" onClick={handleClearEntry}>CE</Button>
-          <Button type="button" variant="outline" onClick={handlePercent}>%</Button>
-          <Button type="button" variant="outline" onClick={() => handleOperation('divide')}>÷</Button>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={() => handleDigit('7')}>7</Button>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={() => handleDigit('8')}>8</Button>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={() => handleDigit('9')}>9</Button>
+        <Button type="button" variant="secondary" className="rounded-xl font-bold h-11 hover-scale-subtle text-primary" onClick={() => handleOperation('multiply')}>×</Button>
 
-          <Button type="button" variant="outline" onClick={() => handleDigit('7')}>7</Button>
-          <Button type="button" variant="outline" onClick={() => handleDigit('8')}>8</Button>
-          <Button type="button" variant="outline" onClick={() => handleDigit('9')}>9</Button>
-          <Button type="button" variant="outline" onClick={() => handleOperation('multiply')}>×</Button>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={() => handleDigit('4')}>4</Button>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={() => handleDigit('5')}>5</Button>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={() => handleDigit('6')}>6</Button>
+        <Button type="button" variant="secondary" className="rounded-xl font-bold h-11 hover-scale-subtle text-primary" onClick={() => handleOperation('subtract')}>−</Button>
 
-          <Button type="button" variant="outline" onClick={() => handleDigit('4')}>4</Button>
-          <Button type="button" variant="outline" onClick={() => handleDigit('5')}>5</Button>
-          <Button type="button" variant="outline" onClick={() => handleDigit('6')}>6</Button>
-          <Button type="button" variant="outline" onClick={() => handleOperation('subtract')}>−</Button>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={() => handleDigit('1')}>1</Button>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={() => handleDigit('2')}>2</Button>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={() => handleDigit('3')}>3</Button>
+        <Button type="button" variant="secondary" className="rounded-xl font-bold h-11 hover-scale-subtle text-primary" onClick={() => handleOperation('add')}>+</Button>
 
-          <Button type="button" variant="outline" onClick={() => handleDigit('1')}>1</Button>
-          <Button type="button" variant="outline" onClick={() => handleDigit('2')}>2</Button>
-          <Button type="button" variant="outline" onClick={() => handleDigit('3')}>3</Button>
-          <Button type="button" variant="outline" onClick={() => handleOperation('add')}>+</Button>
-
-          <Button type="button" variant="outline" onClick={handleSignToggle}>+/-</Button>
-          <Button type="button" variant="outline" onClick={() => handleDigit('0')}>0</Button>
-          <Button type="button" variant="outline" onClick={() => handleDigit('.')}>.</Button>
-          <Button type="button" onClick={handleEquals}>=</Button>
-        </div>
-      </CardContent>
-    </Card>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={handleSignToggle}>+/-</Button>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={() => handleDigit('0')}>0</Button>
+        <Button type="button" variant="outline" className="rounded-xl font-semibold h-11 hover-scale-subtle" onClick={() => handleDigit('.')}>.</Button>
+        <Button type="button" className="rounded-xl font-bold h-11 hover-scale-subtle shadow-md shadow-primary/20" onClick={handleEquals}>=</Button>
+      </div>
+    </div>
   );
 }

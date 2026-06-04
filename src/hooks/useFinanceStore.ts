@@ -78,6 +78,35 @@ async function extractErrorMessage(response: Response): Promise<string | null> {
   }
 }
 
+function applyTransactionToAccounts(accounts: Account[], tx: Transaction, direction: 1 | -1) {
+  const deltas = new Map<string, number>();
+
+  const addDelta = (accountId: string | undefined, amount: number) => {
+    if (!accountId) return;
+    deltas.set(accountId, (deltas.get(accountId) || 0) + amount);
+  };
+
+  if (tx.type === 'income') {
+    addDelta(tx.accountId, direction * tx.amount);
+  }
+
+  if (tx.type === 'expense') {
+    const expenseDelta = -1 * direction;
+    addDelta(tx.accountId, expenseDelta * tx.amount);
+  }
+
+  if (tx.type === 'transfer') {
+    addDelta(tx.accountId, -1 * direction * tx.amount);
+    addDelta(tx.toAccountId, direction * tx.amount);
+  }
+
+  return accounts.map((account) => {
+    const delta = deltas.get(account.id);
+    if (!delta) return account;
+    return { ...account, balance: account.balance + delta };
+  });
+}
+
 export function useFinanceStore() {
   const [data, setData] = useState<FinanceData>(EMPTY_DATA);
   const [isLoading, setIsLoading] = useState(true);
@@ -158,19 +187,7 @@ export function useFinanceStore() {
       }
     }
 
-    const accounts = data.accounts.map((a) => {
-      if (tx.type === 'income' && a.id === tx.accountId) {
-        return { ...a, balance: a.balance + tx.amount };
-      }
-      if (tx.type === 'expense' && a.id === tx.accountId) {
-        return { ...a, balance: a.balance - tx.amount };
-      }
-      if (tx.type === 'transfer') {
-        if (a.id === tx.accountId) return { ...a, balance: a.balance - tx.amount };
-        if (a.id === tx.toAccountId) return { ...a, balance: a.balance + tx.amount };
-      }
-      return a;
-    });
+    const accounts = applyTransactionToAccounts(data.accounts, tx, 1);
 
     const next = { ...data, accounts, transactions: [...data.transactions, tx] };
     const ok = await persistData(next);
@@ -181,19 +198,7 @@ export function useFinanceStore() {
     const tx = data.transactions.find((t) => t.id === id);
     if (!tx) return;
 
-    const accounts = data.accounts.map((a) => {
-      if (tx.type === 'income' && a.id === tx.accountId) {
-        return { ...a, balance: a.balance - tx.amount };
-      }
-      if (tx.type === 'expense' && a.id === tx.accountId) {
-        return { ...a, balance: a.balance + tx.amount };
-      }
-      if (tx.type === 'transfer') {
-        if (a.id === tx.accountId) return { ...a, balance: a.balance + tx.amount };
-        if (a.id === tx.toAccountId) return { ...a, balance: a.balance - tx.amount };
-      }
-      return a;
-    });
+    const accounts = applyTransactionToAccounts(data.accounts, tx, -1);
 
     const next = { ...data, accounts, transactions: data.transactions.filter((t) => t.id !== id) };
     await persistData(next);
@@ -203,15 +208,7 @@ export function useFinanceStore() {
     const old = data.transactions.find((t) => t.id === id);
     if (!old) return null;
 
-    let accounts = data.accounts.map((a) => {
-      if (old.type === 'income' && a.id === old.accountId) return { ...a, balance: a.balance - old.amount };
-      if (old.type === 'expense' && a.id === old.accountId) return { ...a, balance: a.balance + old.amount };
-      if (old.type === 'transfer') {
-        if (a.id === old.accountId) return { ...a, balance: a.balance + old.amount };
-        if (a.id === old.toAccountId) return { ...a, balance: a.balance - old.amount };
-      }
-      return a;
-    });
+    let accounts = applyTransactionToAccounts(data.accounts, old, -1);
 
     if (updated.type === 'expense' || updated.type === 'transfer') {
       const acc = accounts.find((a) => a.id === updated.accountId);
@@ -220,15 +217,7 @@ export function useFinanceStore() {
       }
     }
 
-    accounts = accounts.map((a) => {
-      if (updated.type === 'income' && a.id === updated.accountId) return { ...a, balance: a.balance + updated.amount };
-      if (updated.type === 'expense' && a.id === updated.accountId) return { ...a, balance: a.balance - updated.amount };
-      if (updated.type === 'transfer') {
-        if (a.id === updated.accountId) return { ...a, balance: a.balance - updated.amount };
-        if (a.id === updated.toAccountId) return { ...a, balance: a.balance + updated.amount };
-      }
-      return a;
-    });
+    accounts = applyTransactionToAccounts(accounts, updated, 1);
 
     const next = {
       ...data,

@@ -58,9 +58,3 @@ export const DEFAULT_ACCOUNTS: Account[] = [
   { id: 'card', name: 'Credit Card', type: 'card', balance: 0 },
 ];
 
-export const ACCOUNT_TYPE_ICONS: Record<AccountType, string> = {
-  cash: '💵',
-  bank: '🏦',
-  card: '💳',
-  wallet: '👛',
-};
