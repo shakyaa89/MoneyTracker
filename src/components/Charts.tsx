@@ -36,10 +36,33 @@ export function ExpensePieChart({ transactions, categories }: PieProps) {
 
   if (data.length === 0) {
     return (
-      <div className="card-premium p-4 sm:p-5">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Expenses by Category</h3>
-        <div className="flex items-center justify-center h-40 text-muted-foreground text-xs italic">
-          No expense data
+      <div className="card-premium p-4 sm:p-5 space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Expenses by Category</h3>
+        <div className="flex flex-col items-center justify-center h-[200px] text-center">
+          <svg className="w-20 h-20 text-muted-foreground/30 mb-3" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="35"
+              stroke="currentColor"
+              strokeWidth="8"
+              strokeDasharray="4 6"
+              fill="transparent"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="20"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeDasharray="2 4"
+              fill="transparent"
+            />
+          </svg>
+          <p className="text-xs font-semibold text-foreground">No expense data</p>
+          <p className="text-[10px] text-muted-foreground max-w-[180px] mt-1">
+            Log expenses for this month to generate category breakdown.
+          </p>
         </div>
       </div>
     );
@@ -135,10 +158,33 @@ export function IncomePieChart({ transactions, categories }: PieProps) {
 
   if (data.length === 0) {
     return (
-      <div className="card-premium p-4 sm:p-5">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Income by Category</h3>
-        <div className="flex items-center justify-center h-40 text-muted-foreground text-xs italic">
-          No income data
+      <div className="card-premium p-4 sm:p-5 space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Income by Category</h3>
+        <div className="flex flex-col items-center justify-center h-[200px] text-center">
+          <svg className="w-20 h-20 text-muted-foreground/30 mb-3" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="35"
+              stroke="currentColor"
+              strokeWidth="8"
+              strokeDasharray="4 6"
+              fill="transparent"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="20"
+              stroke="currentColor"
+              strokeWidth="4"
+              strokeDasharray="2 4"
+              fill="transparent"
+            />
+          </svg>
+          <p className="text-xs font-semibold text-foreground">No income data</p>
+          <p className="text-[10px] text-muted-foreground max-w-[180px] mt-1">
+            Log income for this month to generate category breakdown.
+          </p>
         </div>
       </div>
     );

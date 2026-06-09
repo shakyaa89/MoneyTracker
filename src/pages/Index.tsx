@@ -12,7 +12,7 @@ import { AccountCalculator } from '@/components/AccountCalculator';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from '@/components/ui/select';
 import {
   Plus,
   Download,
@@ -38,7 +38,8 @@ import {
   TrendingDown,
   Activity,
   ChevronRight,
-  FileText
+  FileText,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getFinanceTimestamp, parseFinanceDate } from '@/lib/dateTime';
@@ -99,6 +100,18 @@ const Index = ({ onLock }: Props) => {
     document.documentElement.setAttribute('data-theme', color);
     toast.success(`Theme color updated to ${colorThemes.find((t) => t.id === color)?.name || color}!`);
   };
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setFilterAccount('');
+    setFilterCategory('');
+  };
+
+  const isFiltered = !!(
+    searchQuery ||
+    (filterAccount && filterAccount !== 'all') ||
+    (filterCategory && filterCategory !== 'all')
+  );
 
   useEffect(() => {
     if (store.error) {
@@ -213,12 +226,35 @@ const Index = ({ onLock }: Props) => {
       <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 sidebar-glass p-6 justify-between z-40">
         <div className="space-y-8">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-md shadow-primary/20">
-              <Wallet className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary/10 to-primary/5 flex items-center justify-center text-primary border border-primary/20 shadow-sm relative overflow-hidden group">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5.5 h-5.5"
+              >
+                <path
+                  d="M 6,18 V 9 L 12,15 L 18,9 V 18"
+                  className="stroke-primary"
+                  strokeWidth="2.2"
+                />
+                <path
+                  d="M 4.5,6 H 19.5 M 12,6 V 18"
+                  className="stroke-amber-500 dark:stroke-amber-400 drop-shadow-[0_1px_2px_rgba(245,158,11,0.3)]"
+                  strokeWidth="2.2"
+                />
+              </svg>
             </div>
             <div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">MoneyTrack</h1>
-              <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Premium Wallet</span>
+              <h1 className="text-lg font-extrabold tracking-tight leading-none mb-1">
+                <span className="text-foreground">Money</span>
+                <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Track</span>
+              </h1>
+              <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest block leading-none">Smart Wealth</span>
             </div>
           </div>
 
@@ -284,11 +320,34 @@ const Index = ({ onLock }: Props) => {
 
       {/* Mobile Sticky Top Header */}
       <header className="lg:hidden sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
-            <Wallet className="w-4.5 h-4.5" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary/10 to-primary/5 flex items-center justify-center text-primary border border-primary/20">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4.5 h-4.5"
+            >
+              <path
+                d="M 6,18 V 9 L 12,15 L 18,9 V 18"
+                className="stroke-primary"
+                strokeWidth="2.2"
+              />
+              <path
+                d="M 4.5,6 H 19.5 M 12,6 V 18"
+                className="stroke-amber-500 dark:stroke-amber-400 drop-shadow-[0_1px_2px_rgba(245,158,11,0.3)]"
+                strokeWidth="2.2"
+              />
+            </svg>
           </div>
-          <h1 className="text-md font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">MoneyTrack</h1>
+          <h1 className="text-md font-extrabold tracking-tight">
+            <span className="text-foreground">Money</span>
+            <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Track</span>
+          </h1>
         </div>
         <div className="flex items-center gap-1.5">
           <Button
@@ -352,8 +411,14 @@ const Index = ({ onLock }: Props) => {
                       </div>
 
                       {monthTransactions.length === 0 ? (
-                        <div className="flex items-center justify-center h-48 text-muted-foreground text-xs italic">
-                          Add transactions to unlock monthly insights.
+                        <div className="flex flex-col items-center justify-center h-48 text-center p-4">
+                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-3">
+                            <Sparkles className="w-5 h-5 animate-pulse" />
+                          </div>
+                          <p className="text-xs font-semibold text-foreground">No insights yet</p>
+                          <p className="text-[10px] text-muted-foreground max-w-[180px] mt-1">
+                            Add income or expense transactions for this month to unlock monthly insights.
+                          </p>
                         </div>
                       ) : (
                         <div className="space-y-4">
@@ -438,8 +503,14 @@ const Index = ({ onLock }: Props) => {
                       </div>
 
                       {recentTransactions.length === 0 ? (
-                        <div className="flex items-center justify-center h-48 text-muted-foreground text-xs italic">
-                          No transactions recorded yet.
+                        <div className="flex flex-col items-center justify-center h-48 text-center p-4">
+                          <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-muted-foreground mb-3">
+                            <Activity className="w-5 h-5" />
+                          </div>
+                          <p className="text-xs font-semibold text-foreground">No recent activity</p>
+                          <p className="text-[10px] text-muted-foreground max-w-[180px] mt-1">
+                            Your recent transactions will appear here once logged.
+                          </p>
                         </div>
                       ) : (
                         <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
@@ -564,8 +635,8 @@ const Index = ({ onLock }: Props) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
-                <div className="md:col-span-8 relative">
+              <div className="grid grid-cols-2 md:grid-cols-12 gap-3 sm:gap-4">
+                <div className="col-span-2 md:col-span-6 relative">
                   <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                   <Input
                     placeholder="Search note, category, account..."
@@ -574,7 +645,7 @@ const Index = ({ onLock }: Props) => {
                     className="pl-9 h-10 rounded-xl bg-card border-border shadow-sm"
                   />
                 </div>
-                <div className="md:col-span-4">
+                <div className="col-span-1 md:col-span-3">
                   <Select value={filterAccount} onValueChange={setFilterAccount}>
                     <SelectTrigger className="w-full h-10 rounded-xl bg-card border-border shadow-sm">
                       <SelectValue placeholder="All Accounts" />
@@ -587,7 +658,62 @@ const Index = ({ onLock }: Props) => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="col-span-1 md:col-span-3">
+                  <Select value={filterCategory} onValueChange={setFilterCategory}>
+                    <SelectTrigger className="w-full h-10 rounded-xl bg-card border-border shadow-sm">
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="all" className="rounded-lg">All Categories</SelectItem>
+                      
+                      {store.categories.some(c => c.type === 'expense') && (
+                        <>
+                          <SelectSeparator />
+                          <SelectGroup>
+                            <SelectLabel className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider pl-2 py-1">
+                              Expense Categories
+                            </SelectLabel>
+                            {store.categories.filter(c => c.type === 'expense').map((c) => (
+                              <SelectItem key={c.id} value={c.id} className="rounded-lg">
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </>
+                      )}
+                      
+                      {store.categories.some(c => c.type === 'income') && (
+                        <>
+                          <SelectSeparator />
+                          <SelectGroup>
+                            <SelectLabel className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider pl-2 py-1">
+                              Income Categories
+                            </SelectLabel>
+                            {store.categories.filter(c => c.type === 'income').map((c) => (
+                              <SelectItem key={c.id} value={c.id} className="rounded-lg">
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              {isFiltered && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearFilters}
+                    className="text-xs h-8 px-3 rounded-xl gap-1.5 font-semibold text-muted-foreground hover:text-expense hover:bg-expense/10 transition-all duration-200"
+                  >
+                    <X className="w-3.5 h-3.5" /> Clear Filters
+                  </Button>
+                </div>
+              )}
 
               <MonthlySummary transactions={monthTransactions} />
 
@@ -754,14 +880,16 @@ const Index = ({ onLock }: Props) => {
           );
         })}
 
-        {/* Add Transaction Button inside navbar */}
-        <button
-          onClick={() => { setEditTx(null); setTxDialogOpen(true); }}
-          className="flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 text-muted-foreground hover:text-foreground active:scale-95"
-          aria-label="Add transaction"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
+        {/* Elevated Floating Add Transaction Button */}
+        <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
+          <button
+            onClick={() => { setEditTx(null); setTxDialogOpen(true); }}
+            className="absolute -top-7 w-14 h-14 rounded-full bg-gradient-to-tr from-primary to-primary/80 text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 border-4 border-background active:scale-90 hover:scale-105 transition-all duration-200"
+            aria-label="Add transaction"
+          >
+            <Plus className="w-6 h-6 stroke-[2.5]" />
+          </button>
+        </div>
 
         {/* Right Side: Accounts */}
         {navItems.slice(2, 3).map((item) => {
@@ -801,6 +929,17 @@ const Index = ({ onLock }: Props) => {
           </DropdownMenuContent>
         </DropdownMenu>
       </nav>
+
+      {/* Laptop/Desktop Floating Add Transaction Button */}
+      <div className="hidden lg:block fixed bottom-8 left-[calc(50%+128px)] -translate-x-1/2 z-50">
+        <Button
+          onClick={() => { setEditTx(null); setTxDialogOpen(true); }}
+          className="w-14 h-14 rounded-full font-bold shadow-lg shadow-primary/30 bg-gradient-to-tr from-primary to-primary/80 text-primary-foreground hover:scale-110 active:scale-95 transition-all duration-200 p-0 flex items-center justify-center"
+          aria-label="Add transaction"
+        >
+          <Plus className="w-6 h-6 stroke-[2.5]" />
+        </Button>
+      </div>
 
       {/* Add/Edit Transaction Dialog */}
       <TransactionDialog

@@ -1,6 +1,6 @@
 import { Transaction, Category, Account } from '@/types/finance';
 import { format } from 'date-fns';
-import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Trash2, Pencil } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Trash2, Pencil, SearchX, Inbox } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getFinanceTimestamp, parseFinanceDate } from '@/lib/dateTime';
 
@@ -154,9 +154,20 @@ export function TransactionList({ transactions, allTransactions, categories, acc
   }
 
   if (filtered.length === 0) {
+    const isFiltered = !!(searchQuery || filterAccount || filterCategory);
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p className="text-sm">No transactions yet</p>
+      <div className="card-premium p-8 text-center flex flex-col items-center justify-center max-w-md mx-auto my-6">
+        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-4">
+          {isFiltered ? <SearchX className="w-6 h-6" /> : <Inbox className="w-6 h-6" />}
+        </div>
+        <h3 className="text-sm font-semibold text-foreground">
+          {isFiltered ? 'No search results' : 'No transactions yet'}
+        </h3>
+        <p className="text-xs text-muted-foreground mt-1 max-w-[240px]">
+          {isFiltered
+            ? 'We couldn\'t find any transactions matching your filters. Try adjusting your query or category/account filters.'
+            : 'Get started by logging your first transaction for this month using the Add button.'}
+        </p>
       </div>
     );
   }
@@ -197,123 +208,81 @@ export function TransactionList({ transactions, allTransactions, categories, acc
 
               return (
                 <div key={entry.id}>
-                  <div className="md:hidden card-premium hover-scale-subtle p-3.5 space-y-2 relative overflow-hidden pl-5">
-                    <div 
-                      className="absolute left-0 top-0 bottom-0 w-1.5" 
-                      style={{ 
-                        backgroundColor: tx.type === 'income' 
-                          ? 'hsl(var(--income))' 
-                          : tx.type === 'expense' 
-                          ? 'hsl(var(--expense))' 
-                          : 'hsl(var(--transfer))' 
-                      }} 
-                    />
-                    <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-lg ${cfg.bgClass} flex items-center justify-center flex-shrink-0`}>
-                        <Icon className={`w-4 h-4 ${cfg.colorClass}`} />
+                  {/* Redesigned Mobile layout */}
+                  <div className="md:hidden rounded-2xl bg-card/60 hover:bg-card/90 border border-border/60 hover:border-primary/20 shadow-sm hover:shadow-md transition-all duration-300 p-4 space-y-3 relative overflow-hidden group">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
+                          tx.type === 'income' 
+                            ? 'bg-income-muted text-income' 
+                            : tx.type === 'expense' 
+                            ? 'bg-expense-muted text-expense' 
+                            : 'bg-transfer-muted text-transfer'
+                        }`}>
+                          <Icon className="w-4.5 h-4.5 stroke-[2.5]" />
+                        </div>
+                        <div className="min-w-0 space-y-1">
+                          <p className="text-sm font-bold text-foreground leading-snug break-words tracking-tight">
+                            {title}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {tx.type !== 'transfer' && (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary border border-primary/20">
+                                {catName || 'Uncategorized'}
+                              </span>
+                            )}
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-secondary text-secondary-foreground font-mono">
+                              {tx.type === 'transfer' ? `${accName} → ${toAccName}` : accName}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold leading-tight break-words">{title}</p>
-                        <p className="text-xs text-muted-foreground mt-1 break-words">{subtitle}</p>
-                      </div>
-                      <span className={`font-mono font-bold text-sm ${cfg.colorClass} whitespace-nowrap`}>
-                        {cfg.sign}{formatCurrency(entry.amount)}
-                      </span>
-                    </div>
-
-                    <div className="text-[11px] text-muted-foreground flex items-center justify-between pt-1">
-                      <span>{formatTransactionDate(tx.date)}</span>
-                      <span>{formatTransactionTime(tx.date)}</span>
-                    </div>
-
-                    {balance && tx.type !== 'transfer' && (
-                      <p className="text-[11px] text-muted-foreground font-mono bg-muted/30 px-2 py-1 rounded">
-                        Balance: {formatCurrency(balance.before)} → {formatCurrency(balance.after)}
-                      </p>
-                    )}
-                    {balance && tx.type === 'transfer' && (
-                      <div className="text-[11px] text-muted-foreground space-y-1 font-mono bg-muted/30 px-2 py-1 rounded">
-                        <p>{accName || 'From'}: {formatCurrency(balance.before)} → {formatCurrency(balance.after)}</p>
-                        {typeof balance.toBefore === 'number' && typeof balance.toAfter === 'number' && (
-                          <p>{toAccName || 'To'}: {formatCurrency(balance.toBefore)} → {formatCurrency(balance.toAfter)}</p>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-end gap-1 pt-1 border-t border-border/40">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl hover:bg-secondary"
-                        onClick={() => onEdit(tx)}
-                        aria-label="Edit transaction"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-xl text-muted-foreground hover:text-expense hover:bg-secondary"
-                        onClick={() => onDelete(tx.id)}
-                        aria-label="Delete transaction"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="hidden md:flex items-center gap-4 p-4 card-premium hover-scale-subtle relative overflow-hidden pl-6 group">
-                    <div 
-                      className="absolute left-0 top-0 bottom-0 w-1.5" 
-                      style={{ 
-                        backgroundColor: tx.type === 'income' 
-                          ? 'hsl(var(--income))' 
-                          : tx.type === 'expense' 
-                          ? 'hsl(var(--expense))' 
-                          : 'hsl(var(--transfer))' 
-                      }} 
-                    />
-                    <div className={`w-10 h-10 rounded-xl ${cfg.bgClass} flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                      <Icon className={`w-5 h-5 ${cfg.colorClass}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate text-foreground">
-                        {title}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">
-                        {subtitle}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground truncate mt-1">
-                        {formatTransactionTime(tx.date)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-[10px] text-muted-foreground leading-none mb-1.5">
-                          {formatTransactionDate(tx.date)}
-                        </p>
-                        <span className={`font-mono font-bold text-sm ${cfg.colorClass}`}>
+                      <div className="text-right flex-shrink-0">
+                        <span className={`font-mono font-extrabold text-sm ${cfg.colorClass} whitespace-nowrap`}>
                           {cfg.sign}{formatCurrency(entry.amount)}
                         </span>
-                        {balance && tx.type !== 'transfer' && (
-                          <p className="text-[10px] text-muted-foreground leading-none mt-1.5 font-mono">
-                            {formatCurrency(balance.before)} → {formatCurrency(balance.after)}
-                          </p>
-                        )}
-                        {balance && tx.type === 'transfer' && (
-                          <div className="text-[10px] text-muted-foreground leading-tight mt-1.5 font-mono">
-                            <p>{accName || 'From'}: {formatCurrency(balance.before)} → {formatCurrency(balance.after)}</p>
+                      </div>
+                    </div>
+
+                    {balance && (
+                      <div className="text-[10px] text-muted-foreground font-mono bg-muted/40 border border-border/40 px-2.5 py-1.5 rounded-xl space-y-1">
+                        {tx.type !== 'transfer' ? (
+                          <div className="flex items-center justify-between">
+                            <span>Balance Shift</span>
+                            <span className="font-semibold text-foreground/80">
+                              {formatCurrency(balance.before)} → {formatCurrency(balance.after)}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span>{accName} (From)</span>
+                              <span className="font-semibold text-foreground/80">
+                                {formatCurrency(balance.before)} → {formatCurrency(balance.after)}
+                              </span>
+                            </div>
                             {typeof balance.toBefore === 'number' && typeof balance.toAfter === 'number' && (
-                              <p className="mt-0.5">{toAccName || 'To'}: {formatCurrency(balance.toBefore)} → {formatCurrency(balance.toAfter)}</p>
+                              <div className="flex items-center justify-between">
+                                <span>{toAccName} (To)</span>
+                                <span className="font-semibold text-foreground/80">
+                                  {formatCurrency(balance.toBefore)} → {formatCurrency(balance.toAfter)}
+                                </span>
+                              </div>
                             )}
                           </div>
                         )}
                       </div>
-                      <div className="flex opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                    )}
+
+                    <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                      <div className="text-[10px] text-muted-foreground font-medium">
+                        {formatTransactionDate(tx.date)} at {formatTransactionTime(tx.date)}
+                      </div>
+                      <div className="flex items-center gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground"
+                          className="h-8 w-8 rounded-lg hover:bg-secondary hover:text-foreground text-muted-foreground"
                           onClick={() => onEdit(tx)}
                           aria-label="Edit transaction"
                         >
@@ -322,7 +291,89 @@ export function TransactionList({ transactions, allTransactions, categories, acc
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-xl text-muted-foreground hover:text-expense hover:bg-secondary"
+                          className="h-8 w-8 rounded-lg text-muted-foreground hover:text-expense hover:bg-expense/10"
+                          onClick={() => onDelete(tx.id)}
+                          aria-label="Delete transaction"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Redesigned Desktop layout */}
+                  <div className="hidden md:flex items-center gap-4 p-4 rounded-2xl bg-card/60 hover:bg-card/90 border border-border/60 hover:border-primary/20 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
+                    <div className={`w-10 h-10 rounded-xl ${
+                      tx.type === 'income' 
+                        ? 'bg-income-muted text-income' 
+                        : tx.type === 'expense' 
+                        ? 'bg-expense-muted text-expense' 
+                        : 'bg-transfer-muted text-transfer'
+                    } flex items-center justify-center flex-shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105`}>
+                      <Icon className="w-5 h-5 stroke-[2.5]" />
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold truncate text-foreground tracking-tight">
+                          {title}
+                        </p>
+                        <span className="text-[10px] text-muted-foreground font-medium shrink-0">
+                          {formatTransactionTime(tx.date)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-1.5 mt-1">
+                        {tx.type !== 'transfer' && (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary border border-primary/20 tracking-wide">
+                            {catName || 'Uncategorized'}
+                          </span>
+                        )}
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-secondary text-secondary-foreground font-mono">
+                          {tx.type === 'transfer' ? `${accName} → ${toAccName}` : accName}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                      {balance && (
+                        <div className="text-[10px] text-muted-foreground font-mono bg-muted/40 border border-border/40 px-3 py-1.5 rounded-xl text-right max-w-xs leading-normal">
+                          {tx.type !== 'transfer' ? (
+                            <p>Balance: <span className="font-semibold text-foreground/80">{formatCurrency(balance.before)} → {formatCurrency(balance.after)}</span></p>
+                          ) : (
+                            <div className="space-y-0.5">
+                              <p>{accName}: <span className="font-semibold text-foreground/80">{formatCurrency(balance.before)} → {formatCurrency(balance.after)}</span></p>
+                              {typeof balance.toBefore === 'number' && typeof balance.toAfter === 'number' && (
+                                <p>{toAccName}: <span className="font-semibold text-foreground/80">{formatCurrency(balance.toBefore)} → {formatCurrency(balance.toAfter)}</span></p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="text-right">
+                        <p className="text-[10px] text-muted-foreground font-medium mb-1">
+                          {formatTransactionDate(tx.date)}
+                        </p>
+                        <span className={`font-mono font-extrabold text-sm ${cfg.colorClass} whitespace-nowrap`}>
+                          {cfg.sign}{formatCurrency(entry.amount)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-1 group-hover:translate-x-0 gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+                          onClick={() => onEdit(tx)}
+                          aria-label="Edit transaction"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-lg text-muted-foreground hover:text-expense hover:bg-expense/10"
                           onClick={() => onDelete(tx.id)}
                           aria-label="Delete transaction"
                         >

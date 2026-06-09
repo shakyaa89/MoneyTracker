@@ -175,6 +175,33 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
           className="font-mono text-lg rounded-xl"
           autoFocus={isDesktop}
         />
+        <div className="flex flex-wrap gap-1.5 mt-1.5">
+          {([50, 100, 500, 1000, 5000] as const).map((val) => (
+            <Button
+              key={val}
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs h-7 px-2.5 rounded-lg font-mono font-semibold hover:bg-primary/10 hover:text-primary transition-all duration-200"
+              onClick={() => {
+                const cur = parseFloat(amount) || 0;
+                setAmount((cur + val).toString());
+                if (validationError) setValidationError('');
+              }}
+            >
+              +{val}
+            </Button>
+          ))}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs h-7 px-2 rounded-lg font-semibold text-muted-foreground hover:text-expense hover:bg-expense/10"
+            onClick={() => setAmount('')}
+          >
+            Clear
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -357,7 +384,7 @@ export function TransactionDialog({ open, onOpenChange, categories, accounts, on
         <DrawerHeader className="text-left px-0 pb-2 flex-shrink-0">
           <DrawerTitle>{editTransaction ? 'Edit' : 'Add'} Transaction</DrawerTitle>
         </DrawerHeader>
-        <div className="overflow-y-auto no-scrollbar flex-1 pb-6">
+        <div className="overflow-y-auto no-scrollbar flex-1 pb-20">
           {formContent}
         </div>
       </DrawerContent>
