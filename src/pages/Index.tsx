@@ -49,6 +49,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const colorThemes = [
   { id: 'teal', name: 'Teal (Default)', class: 'bg-[#14b8a6]' },
@@ -85,6 +95,10 @@ const Index = ({ onLock }: Props) => {
   const [filterAccount, setFilterAccount] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteType, setDeleteType] = useState<'transaction' | 'category' | 'account' | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark');
@@ -183,6 +197,68 @@ const Index = ({ onLock }: Props) => {
   const handleEditTx = (tx: Transaction) => {
     setEditTx(tx);
     setTxDialogOpen(true);
+  };
+
+  const getDeleteModalContent = () => {
+    if (!deleteType || !deleteId) return { title: '', description: '', actionLabel: '' };
+
+    if (deleteType === 'transaction') {
+      const tx = store.transactions.find((t) => t.id === deleteId);
+      const categoryName = tx ? store.categories.find((c) => c.id === tx.categoryId)?.name || 'Uncategorized' : '';
+      const amountStr = tx ? `Rs.${tx.amount.toLocaleString('en-IN')}` : '';
+      return {
+        title: 'Delete Transaction?',
+        description: `Are you sure you want to permanently delete the transaction of ${amountStr} for "${tx?.note || categoryName}"? This will revert its impact on your account balance.`,
+        actionLabel: 'Delete',
+      };
+    }
+
+    if (deleteType === 'category') {
+      const cat = store.categories.find((c) => c.id === deleteId);
+      const txCount = store.transactions.filter((t) => t.categoryId === deleteId).length;
+      const warningText = txCount > 0 
+        ? ` Note: ${txCount} transaction(s) categorized under "${cat?.name}" will be marked as "Uncategorized".`
+        : '';
+      return {
+        title: 'Delete Category?',
+        description: `Are you sure you want to delete the category "${cat?.name}"? This action cannot be undone.${warningText}`,
+        actionLabel: 'Delete Category',
+      };
+    }
+
+    if (deleteType === 'account') {
+      const acc = store.accounts.find((a) => a.id === deleteId);
+      const txCount = store.transactions.filter((t) => t.accountId === deleteId || t.toAccountId === deleteId).length;
+      const warningText = txCount > 0
+        ? ` WARNING: Deleting this account will permanently delete all ${txCount} transaction(s) associated with it.`
+        : ' This action cannot be undone.';
+      return {
+        title: 'Delete Account?',
+        description: `Are you sure you want to delete the account "${acc?.name}"?${warningText}`,
+        actionLabel: 'Delete Account',
+      };
+    }
+
+    return { title: '', description: '', actionLabel: '' };
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteType || !deleteId) return;
+
+    if (deleteType === 'transaction') {
+      void store.deleteTransaction(deleteId);
+      toast.success('Transaction deleted successfully');
+    } else if (deleteType === 'category') {
+      void store.deleteCategory(deleteId);
+      toast.success('Category deleted successfully');
+    } else if (deleteType === 'account') {
+      void store.deleteAccount(deleteId);
+      toast.success('Account deleted successfully');
+    }
+
+    setDeleteConfirmOpen(false);
+    setDeleteType(null);
+    setDeleteId(null);
   };
 
   const toggleTheme = () => {
@@ -724,7 +800,9 @@ const Index = ({ onLock }: Props) => {
                   categories={store.categories}
                   accounts={store.accounts}
                   onDelete={(id) => {
-                    void store.deleteTransaction(id);
+                    setDeleteType('transaction');
+                    setDeleteId(id);
+                    setDeleteConfirmOpen(true);
                   }}
                   onEdit={handleEditTx}
                   searchQuery={searchQuery}
@@ -750,10 +828,9 @@ const Index = ({ onLock }: Props) => {
                   void store.updateAccount(id, updates);
                 }}
                 onDeleteAccount={(id) => {
-                  const acc = store.accounts.find((a) => a.id === id);
-                  const txCount = store.transactions.filter((t) => t.accountId === id || t.toAccountId === id).length;
-                  if (txCount > 0 && !window.confirm(`Delete "${acc?.name}"? This will also delete ${txCount} transaction(s).`)) return;
-                  void store.deleteAccount(id);
+                  setDeleteType('account');
+                  setDeleteId(id);
+                  setDeleteConfirmOpen(true);
                 }}
               />
             </TabsContent>
@@ -802,7 +879,9 @@ const Index = ({ onLock }: Props) => {
                   void store.addCategory(cat);
                 }}
                 onDelete={(id) => {
-                  void store.deleteCategory(id);
+                  setDeleteType('category');
+                  setDeleteId(id);
+                  setDeleteConfirmOpen(true);
                 }}
                 onUpdate={(id, updates) => {
                   void store.updateCategory(id, updates);
@@ -950,6 +1029,31 @@ const Index = ({ onLock }: Props) => {
         onSave={handleSaveTx}
         editTransaction={editTx}
       />
+
+      {/* Deletion Confirmation Modal */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent className="rounded-2xl max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground font-bold">
+              {getDeleteModalContent().title}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground text-sm">
+              {getDeleteModalContent().description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel className="rounded-xl font-semibold border-border hover:bg-muted">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-expense hover:bg-expense/90 text-expense-foreground rounded-xl font-bold"
+            >
+              {getDeleteModalContent().actionLabel}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

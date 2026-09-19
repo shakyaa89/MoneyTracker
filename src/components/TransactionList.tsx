@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Transaction, Category, Account } from '@/types/finance';
 import { format } from 'date-fns';
-import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Trash2, Pencil, SearchX, Inbox } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Trash2, Pencil, SearchX, Inbox, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { getFinanceTimestamp, parseFinanceDate } from '@/lib/dateTime';
 
 interface Props {
@@ -23,6 +25,12 @@ function formatCurrency(n: number) {
     maximumFractionDigits: 2,
   }).format(absValue);
   return `${n < 0 ? '-' : ''}Rs.${formatted}`;
+}
+
+function getSignedAmount(transaction: Transaction) {
+  if (transaction.type === 'income') return transaction.amount;
+  if (transaction.type === 'expense') return -transaction.amount;
+  return 0;
 }
 
 const typeConfig = {
@@ -123,6 +131,7 @@ function buildBalanceSnapshots(accounts: Account[], transactions: Transaction[])
 }
 
 export function TransactionList({ transactions, allTransactions, categories, accounts, onDelete, onEdit, searchQuery, filterAccount, filterCategory }: Props) {
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const sorted = [...transactions].sort((a, b) => getFinanceTimestamp(b.date) - getFinanceTimestamp(a.date));
   const balanceSnapshots = buildBalanceSnapshots(accounts, allTransactions ?? transactions);
   let filtered = buildDisplayTransactions(sorted);
@@ -152,6 +161,32 @@ export function TransactionList({ transactions, allTransactions, categories, acc
   if (filterCategory) {
     filtered = filtered.filter((entry) => entry.base.categoryId === filterCategory);
   }
+
+  const selectedEntries = filtered.filter((entry) => selectedIds.has(entry.id));
+  const selectedTotal = selectedEntries.reduce((sum, entry) => sum + getSignedAmount(entry.base), 0);
+  const allVisibleSelected = filtered.length > 0 && selectedEntries.length === filtered.length;
+
+  const toggleSelection = (id: string, checked: boolean) => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const toggleAllVisible = (checked: boolean) => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      filtered.forEach((entry) => {
+        if (checked) next.add(entry.id);
+        else next.delete(entry.id);
+      });
+      return next;
+    });
+  };
+
+  const clearSelections = () => setSelectedIds(new Set());
 
   if (filtered.length === 0) {
     const isFiltered = !!(searchQuery || filterAccount || filterCategory);
@@ -183,6 +218,37 @@ export function TransactionList({ transactions, allTransactions, categories, acc
 
   return (
     <div className="space-y-4 animate-fade-in">
+      <div className="card-premium flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <Checkbox
+            checked={allVisibleSelected}
+            onCheckedChange={(checked) => toggleAllVisible(checked === true)}
+            aria-label={allVisibleSelected ? 'Deselect all visible transactions' : 'Select all visible transactions'}
+          />
+          <span className="text-xs font-semibold text-muted-foreground">
+            {selectedEntries.length > 0 ? `${selectedEntries.length} selected` : 'Select transactions'}
+          </span>
+        </div>
+        <div className="flex min-w-0 flex-wrap items-center gap-3 sm:justify-end">
+          <div className="min-w-0 text-left sm:text-right">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Selected total</p>
+            <p className="break-words font-mono text-base font-extrabold text-foreground sm:text-lg">
+              {formatCurrency(selectedTotal)}
+            </p>
+          </div>
+          {selectedEntries.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearSelections}
+              className="h-8 shrink-0 gap-1.5 rounded-lg px-2.5 text-xs"
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear selections
+            </Button>
+          )}
+        </div>
+      </div>
       {Object.entries(grouped).map(([date, txs]) => (
         <div key={date}>
           <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wider">
@@ -209,7 +275,19 @@ export function TransactionList({ transactions, allTransactions, categories, acc
               return (
                 <div key={entry.id}>
                   {/* Redesigned Mobile layout */}
-                  <div className="md:hidden rounded-2xl bg-card/60 hover:bg-card/90 border border-border/60 hover:border-primary/20 shadow-sm hover:shadow-md transition-all duration-300 p-4 space-y-3 relative overflow-hidden group">
+                  <div
+                    className={`md:hidden rounded-2xl bg-card/60 hover:bg-card/90 border shadow-sm hover:shadow-md transition-all duration-300 p-4 space-y-3 relative overflow-hidden group cursor-pointer ${selectedIds.has(entry.id) ? 'border-primary/50 bg-primary/5' : 'border-border/60 hover:border-primary/20'}`}
+                    onClick={() => toggleSelection(entry.id, !selectedIds.has(entry.id))}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        toggleSelection(entry.id, !selectedIds.has(entry.id));
+                      }
+                    }}
+                    aria-pressed={selectedIds.has(entry.id)}
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${
@@ -283,7 +361,10 @@ export function TransactionList({ transactions, allTransactions, categories, acc
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 rounded-lg hover:bg-secondary hover:text-foreground text-muted-foreground"
-                          onClick={() => onEdit(tx)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onEdit(tx);
+                          }}
                           aria-label="Edit transaction"
                         >
                           <Pencil className="w-3.5 h-3.5" />
@@ -292,7 +373,10 @@ export function TransactionList({ transactions, allTransactions, categories, acc
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 rounded-lg text-muted-foreground hover:text-expense hover:bg-expense/10"
-                          onClick={() => onDelete(tx.id)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onDelete(tx.id);
+                          }}
                           aria-label="Delete transaction"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -302,7 +386,19 @@ export function TransactionList({ transactions, allTransactions, categories, acc
                   </div>
 
                   {/* Redesigned Desktop layout */}
-                  <div className="hidden md:flex items-center gap-4 p-4 rounded-2xl bg-card/60 hover:bg-card/90 border border-border/60 hover:border-primary/20 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group">
+                  <div
+                    className={`hidden md:flex items-center gap-4 p-4 rounded-2xl bg-card/60 hover:bg-card/90 border shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer ${selectedIds.has(entry.id) ? 'border-primary/50 bg-primary/5' : 'border-border/60 hover:border-primary/20'}`}
+                    onClick={() => toggleSelection(entry.id, !selectedIds.has(entry.id))}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        toggleSelection(entry.id, !selectedIds.has(entry.id));
+                      }
+                    }}
+                    aria-pressed={selectedIds.has(entry.id)}
+                  >
                     <div className={`w-10 h-10 rounded-xl ${
                       tx.type === 'income' 
                         ? 'bg-income-muted text-income' 
@@ -365,7 +461,10 @@ export function TransactionList({ transactions, allTransactions, categories, acc
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
-                          onClick={() => onEdit(tx)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onEdit(tx);
+                          }}
                           aria-label="Edit transaction"
                         >
                           <Pencil className="w-3.5 h-3.5" />
@@ -374,7 +473,10 @@ export function TransactionList({ transactions, allTransactions, categories, acc
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 rounded-lg text-muted-foreground hover:text-expense hover:bg-expense/10"
-                          onClick={() => onDelete(tx.id)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onDelete(tx.id);
+                          }}
                           aria-label="Delete transaction"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
