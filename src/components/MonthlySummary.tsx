@@ -1,5 +1,6 @@
 import { Transaction } from '@/types/finance';
 import { ArrowUpRight, ArrowDownRight, TrendingUp } from 'lucide-react';
+import { usePrivacyMode } from '@/hooks/usePrivacyMode';
 
 interface Props {
   transactions: Transaction[];
@@ -15,6 +16,7 @@ function formatCurrency(n: number) {
 }
 
 export function MonthlySummary({ transactions }: Props) {
+  const { privacyMode } = usePrivacyMode();
   const income = transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expenses = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const net = income - expenses;
@@ -26,21 +28,21 @@ export function MonthlySummary({ transactions }: Props) {
           <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-income flex-shrink-0" />
           <span className="text-[9px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground truncate">Income</span>
         </div>
-        <p className="font-mono font-bold text-xs sm:text-sm text-income truncate">{formatCurrency(income)}</p>
+        <p className="font-mono font-bold text-xs sm:text-sm text-income truncate">{privacyMode ? '••••' : formatCurrency(income)}</p>
       </div>
       <div className="rounded-xl bg-expense-muted p-2.5 sm:p-3 flex flex-col justify-between">
         <div className="flex items-center gap-1 mb-1.5">
           <ArrowDownRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-expense flex-shrink-0" />
           <span className="text-[9px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground truncate">Expenses</span>
         </div>
-        <p className="font-mono font-bold text-xs sm:text-sm text-expense truncate">{formatCurrency(expenses)}</p>
+        <p className="font-mono font-bold text-xs sm:text-sm text-expense truncate">{privacyMode ? '••••' : formatCurrency(expenses)}</p>
       </div>
       <div className="rounded-xl bg-muted p-2.5 sm:p-3 flex flex-col justify-between">
         <div className="flex items-center gap-1 mb-1.5">
           <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground flex-shrink-0" />
           <span className="text-[9px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground truncate">Net</span>
         </div>
-        <p className={`font-mono font-bold text-xs sm:text-sm truncate ${net >= 0 ? 'text-income' : 'text-expense'}`}>{formatCurrency(net)}</p>
+        <p className={`font-mono font-bold text-xs sm:text-sm truncate ${net >= 0 ? 'text-income' : 'text-expense'}`}>{privacyMode ? '••••' : formatCurrency(net)}</p>
       </div>
     </div>
   );

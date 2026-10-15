@@ -30,6 +30,8 @@ import {
   Moon,
   MoreHorizontal,
   Settings,
+  Eye,
+  EyeOff,
   ArrowDownLeft,
   ArrowUpRight,
   ArrowLeftRight,
@@ -43,6 +45,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getFinanceTimestamp, parseFinanceDate } from '@/lib/dateTime';
+import { usePrivacyMode } from '@/hooks/usePrivacyMode';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,12 +82,22 @@ const colorThemes = [
   { id: 'forest', name: 'Forest Green', class: 'bg-[#15803d]' },
 ];
 
+function formatCurrency(amount: number) {
+  const absValue = Math.abs(amount);
+  const formatted = new Intl.NumberFormat('en-IN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(absValue);
+  return `${amount < 0 ? '-' : ''}Rs.${formatted}`;
+}
+
 interface Props {
   onLock?: () => void;
 }
 
 const Index = ({ onLock }: Props) => {
   const store = useFinanceStore();
+  const { privacyMode, setPrivacyMode } = usePrivacyMode();
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -369,6 +382,7 @@ const Index = ({ onLock }: Props) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
@@ -379,6 +393,7 @@ const Index = ({ onLock }: Props) => {
               </Button>
               {onLock && (
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   onClick={onLock}
@@ -711,6 +726,43 @@ const Index = ({ onLock }: Props) => {
                 </div>
               </div>
 
+              <div className="card-premium overflow-hidden">
+                <div className="flex items-center justify-between border-b border-border/60 px-3 py-2.5 sm:px-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Account Details</h3>
+                  <span className="text-[10px] font-semibold text-muted-foreground">Read-only</span>
+                </div>
+                <div className="grid gap-2 p-2.5 sm:grid-cols-2 sm:p-3 lg:grid-cols-3">
+                  {store.accounts.map((account) => (
+                    <div key={account.id} className="flex min-w-0 items-center justify-between rounded-xl bg-muted/30 px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold">{account.name}</p>
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{account.type}</p>
+                      </div>
+                      <span className={`ml-2 shrink-0 font-mono text-xs font-bold ${account.balance >= 0 ? 'text-income' : 'text-expense'}`}>
+                        {privacyMode ? '••••' : formatCurrency(account.balance)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between border-t border-border/60 px-3 py-2 sm:px-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Net worth</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setPrivacyMode(!privacyMode)}
+                      className="h-6 w-6 rounded-lg text-muted-foreground hover:bg-muted"
+                      aria-label={privacyMode ? 'Show balances' : 'Hide balances'}
+                      aria-pressed={privacyMode}
+                    >
+                      {privacyMode ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                    </Button>
+                  </div>
+                  <span className="font-mono text-xs font-extrabold text-foreground">{privacyMode ? '••••••' : formatCurrency(store.netWorth)}</span>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 md:grid-cols-12 gap-3 sm:gap-4">
                 <div className="col-span-2 md:col-span-6 relative">
                   <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
@@ -906,6 +958,22 @@ const Index = ({ onLock }: Props) => {
               </div>
 
               <div className="card-premium p-6 space-y-6">
+                <div className="flex items-center justify-between gap-4 border-b border-border/60 pb-5">
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-semibold">Privacy Mode</h3>
+                    <p className="text-xs text-muted-foreground">Hide account balances and transaction amounts.</p>
+                  </div>
+                  <Button
+                    variant={privacyMode ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setPrivacyMode(!privacyMode)}
+                    className="shrink-0 gap-2 rounded-xl"
+                    aria-pressed={privacyMode}
+                  >
+                    {privacyMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {privacyMode ? 'Hidden' : 'Visible'}
+                  </Button>
+                </div>
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold">Accent Color</h3>
                   <p className="text-xs text-muted-foreground">Choose a theme color for buttons, active tabs, and highlights.</p>

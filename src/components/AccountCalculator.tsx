@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { usePrivacyMode } from '@/hooks/usePrivacyMode';
 
 interface Props {
   accounts: Account[];
@@ -32,6 +33,7 @@ function formatCurrency(amount: number) {
 }
 
 export function AccountCalculator({ accounts }: Props) {
+  const { privacyMode } = usePrivacyMode();
   const [accountId, setAccountId] = useState(accounts[0]?.id || '');
   const [displayValue, setDisplayValue] = useState('0');
   const [previousValue, setPreviousValue] = useState<number | null>(null);
@@ -180,12 +182,12 @@ export function AccountCalculator({ accounts }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-1">
           <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Current balance</p>
-          <p className="font-mono text-base font-extrabold text-foreground">{formatCurrency(baseBalance)}</p>
+          <p className="font-mono text-base font-extrabold text-foreground">{privacyMode ? '••••' : formatCurrency(baseBalance)}</p>
         </div>
 
         <div className="rounded-xl border border-border bg-card/50 p-4 flex flex-col justify-between">
           <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider truncate mb-1">{expression || 'Ready'}</p>
-          <p className="font-mono text-lg font-extrabold text-right text-primary">{formatCurrency(Number(displayValue) || 0)}</p>
+          <p className="font-mono text-lg font-extrabold text-right text-primary">{privacyMode ? '••••' : formatCurrency(Number(displayValue) || 0)}</p>
         </div>
       </div>
 

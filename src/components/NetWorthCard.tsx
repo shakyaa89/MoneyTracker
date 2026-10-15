@@ -1,6 +1,6 @@
 import { Account } from '@/types/finance';
 import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp, Plus, Trash2, Pencil, Banknote, Building2, CreditCard, Wallet } from 'lucide-react';
+import { TrendingUp, Plus, Trash2, Pencil, Banknote, Building2, CreditCard, Wallet, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import type { AccountType } from '@/types/finance';
+import { usePrivacyMode } from '@/hooks/usePrivacyMode';
 
 interface Props {
   accounts: Account[];
@@ -28,6 +29,7 @@ function formatCurrency(amount: number) {
 }
 
 export function NetWorthCard({ accounts, netWorth, onAddAccount, onUpdateAccount, onDeleteAccount, readOnly }: Props) {
+  const { privacyMode, setPrivacyMode } = usePrivacyMode();
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editingAccountId, setEditingAccountId] = useState('');
@@ -85,15 +87,26 @@ export function NetWorthCard({ accounts, netWorth, onAddAccount, onUpdateAccount
   return (
     <div className="space-y-4 animate-slide-up">
       <div className="rounded-2xl p-5 sm:p-6 networth-card-gradient shadow-md relative overflow-hidden group hover:scale-[1.01] transition-all duration-300">
-        <div className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+        <div className="pointer-events-none absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
           <Wallet className="w-40 h-40" />
         </div>
-        <div className="flex items-center gap-2 text-primary mb-1.5">
+        <div className="relative z-10 flex items-center gap-2 text-primary mb-1.5">
           <TrendingUp className="w-4.5 h-4.5" />
           <span className="text-xs font-bold uppercase tracking-widest">Net Worth Balance</span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setPrivacyMode(!privacyMode)}
+            className="h-7 w-7 rounded-lg text-muted-foreground hover:bg-background/50 hover:text-foreground"
+            aria-label={privacyMode ? 'Show balances' : 'Hide balances'}
+            aria-pressed={privacyMode}
+          >
+            {privacyMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
         </div>
-        <p className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground font-mono">
-          {formatCurrency(netWorth)}
+        <p className="relative z-10 text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground font-mono">
+          {privacyMode ? '••••••' : formatCurrency(netWorth)}
         </p>
       </div>
 
@@ -215,7 +228,7 @@ export function NetWorthCard({ accounts, netWorth, onAddAccount, onUpdateAccount
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <span className={`font-mono font-bold text-xs sm:text-sm ${account.balance >= 0 ? 'text-income' : 'text-expense'}`}>
-                {formatCurrency(account.balance)}
+                {privacyMode ? '••••' : formatCurrency(account.balance)}
               </span>
               {!readOnly && onUpdateAccount && (
                 <Button

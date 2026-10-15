@@ -5,6 +5,7 @@ import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Trash2, Pencil, SearchX, 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { getFinanceTimestamp, parseFinanceDate } from '@/lib/dateTime';
+import { usePrivacyMode } from '@/hooks/usePrivacyMode';
 
 interface Props {
   transactions: Transaction[];
@@ -131,6 +132,7 @@ function buildBalanceSnapshots(accounts: Account[], transactions: Transaction[])
 }
 
 export function TransactionList({ transactions, allTransactions, categories, accounts, onDelete, onEdit, searchQuery, filterAccount, filterCategory }: Props) {
+  const { privacyMode } = usePrivacyMode();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const sorted = [...transactions].sort((a, b) => getFinanceTimestamp(b.date) - getFinanceTimestamp(a.date));
   const balanceSnapshots = buildBalanceSnapshots(accounts, allTransactions ?? transactions);
@@ -233,7 +235,7 @@ export function TransactionList({ transactions, allTransactions, categories, acc
           <div className="min-w-0 text-left sm:text-right">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Selected total</p>
             <p className="break-words font-mono text-base font-extrabold text-foreground sm:text-lg">
-              {formatCurrency(selectedTotal)}
+              {privacyMode ? '••••' : formatCurrency(selectedTotal)}
             </p>
           </div>
           {selectedEntries.length > 0 && (
@@ -317,7 +319,7 @@ export function TransactionList({ transactions, allTransactions, categories, acc
                       </div>
                       <div className="text-right flex-shrink-0">
                         <span className={`font-mono font-extrabold text-sm ${cfg.colorClass} whitespace-nowrap`}>
-                          {cfg.sign}{formatCurrency(entry.amount)}
+                          {privacyMode ? '••••' : `${cfg.sign}${formatCurrency(entry.amount)}`}
                         </span>
                       </div>
                     </div>
@@ -328,7 +330,7 @@ export function TransactionList({ transactions, allTransactions, categories, acc
                           <div className="flex items-center justify-between">
                             <span>Balance Shift</span>
                             <span className="font-semibold text-foreground/80">
-                              {formatCurrency(balance.before)} → {formatCurrency(balance.after)}
+                              {privacyMode ? '•••• → ••••' : `${formatCurrency(balance.before)} → ${formatCurrency(balance.after)}`}
                             </span>
                           </div>
                         ) : (
@@ -336,14 +338,14 @@ export function TransactionList({ transactions, allTransactions, categories, acc
                             <div className="flex items-center justify-between">
                               <span>{accName} (From)</span>
                               <span className="font-semibold text-foreground/80">
-                                {formatCurrency(balance.before)} → {formatCurrency(balance.after)}
+                                {privacyMode ? '•••• → ••••' : `${formatCurrency(balance.before)} → ${formatCurrency(balance.after)}`}
                               </span>
                             </div>
                             {typeof balance.toBefore === 'number' && typeof balance.toAfter === 'number' && (
                               <div className="flex items-center justify-between">
                                 <span>{toAccName} (To)</span>
                                 <span className="font-semibold text-foreground/80">
-                                  {formatCurrency(balance.toBefore)} → {formatCurrency(balance.toAfter)}
+                                  {privacyMode ? '•••• → ••••' : `${formatCurrency(balance.toBefore)} → ${formatCurrency(balance.toAfter)}`}
                                 </span>
                               </div>
                             )}
@@ -435,12 +437,12 @@ export function TransactionList({ transactions, allTransactions, categories, acc
                       {balance && (
                         <div className="text-[10px] text-muted-foreground font-mono bg-muted/40 border border-border/40 px-3 py-1.5 rounded-xl text-right max-w-xs leading-normal">
                           {tx.type !== 'transfer' ? (
-                            <p>Balance: <span className="font-semibold text-foreground/80">{formatCurrency(balance.before)} → {formatCurrency(balance.after)}</span></p>
+                            <p>Balance: <span className="font-semibold text-foreground/80">{privacyMode ? '•••• → ••••' : `${formatCurrency(balance.before)} → ${formatCurrency(balance.after)}`}</span></p>
                           ) : (
                             <div className="space-y-0.5">
-                              <p>{accName}: <span className="font-semibold text-foreground/80">{formatCurrency(balance.before)} → {formatCurrency(balance.after)}</span></p>
+                              <p>{accName}: <span className="font-semibold text-foreground/80">{privacyMode ? '•••• → ••••' : `${formatCurrency(balance.before)} → ${formatCurrency(balance.after)}`}</span></p>
                               {typeof balance.toBefore === 'number' && typeof balance.toAfter === 'number' && (
-                                <p>{toAccName}: <span className="font-semibold text-foreground/80">{formatCurrency(balance.toBefore)} → {formatCurrency(balance.toAfter)}</span></p>
+                                <p>{toAccName}: <span className="font-semibold text-foreground/80">{privacyMode ? '•••• → ••••' : `${formatCurrency(balance.toBefore)} → ${formatCurrency(balance.toAfter)}`}</span></p>
                               )}
                             </div>
                           )}
@@ -452,7 +454,7 @@ export function TransactionList({ transactions, allTransactions, categories, acc
                           {formatTransactionDate(tx.date)}
                         </p>
                         <span className={`font-mono font-extrabold text-sm ${cfg.colorClass} whitespace-nowrap`}>
-                          {cfg.sign}{formatCurrency(entry.amount)}
+                          {privacyMode ? '••••' : `${cfg.sign}${formatCurrency(entry.amount)}`}
                         </span>
                       </div>
                       
